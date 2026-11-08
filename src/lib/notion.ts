@@ -39,6 +39,12 @@ export interface FieldTrip {
   checklistUrl: string | null;
   limit: number | null;
   isPast: boolean;
+  /** Total party size of RSVPs with status "Reserved". Null if RSVP counts are unavailable. */
+  reserved: number | null;
+  /** Total party size of RSVPs with status "Waitlist". Null if RSVP counts are unavailable. */
+  waitlist: number | null;
+  /** Upcoming trip that is Full: either marked Full in Notion, or the reserved total reached the limit. */
+  isFull: boolean;
   /** Page IDs from the Trip Leaders relation. */
   leaderIds: string[];
   /** Leaders whose pages the site could read (filled in after the trips load). */
@@ -131,6 +137,9 @@ function pageToTrip(page: any): FieldTrip | null {
     // The Participants column is attendance after the fact (internal), so the site ignores it.
     limit: p['Participant limit']?.number ?? null,
     isPast: status === 'Completed' || datePassed,
+    reserved: null,
+    waitlist: null,
+    isFull: false,
     leaderIds: (p[LEADERS_PROPERTY]?.relation ?? []).map((r: { id: string }) => r.id),
     leaders: [],
   };
@@ -174,6 +183,85 @@ export function getLeaderBioHtml(id: string): Promise<string> {
     );
   }
   return bioCache.get(id)!;
+}
+
+// ---------- RSVP totals ----------
+//
+// RSVPs live in a private Notion database. The site only ever sums two numbers per trip:
+//   Reserved total = sum of "Number in party" where Status is Reserved
+//   Waitlist total = sum of "Number in party" where Status is Waitlist
+// To keep contact info out of the build entirely, the query asks Notion for only three
+// columns (trip link, party size, status) using filter_properties.
+// Needs NOTION_RSVP_DB_ID. If it is missing or unreadable, the site simply shows no counts.
+
+const RSVP_PARTY_PROPERTY = 'Number in party';
+const RSVP_STATUS_PROPERTY = 'Status';
+
+interface RsvpTotals {
+  reserved: number;
+  waitlist: number;
+}
+
+const normId = (id: string) => id.replace(/-/g, '');
+
+async function loadRsvpTotals(tripsDbId: string): Promise<Map<string, RsvpTotals> | null> {
+  const rsvpDbId = import.meta.env.NOTION_RSVP_DB_ID;
+  if (!rsvpDbId) {
+    console.warn('[notion] NOTION_RSVP_DB_ID is not set. Showing no RSVP counts.');
+    return null;
+  }
+
+  try {
+    const db = await notion(`/databases/${rsvpDbId}`);
+    const entries = Object.entries<any>(db.properties);
+    const relation = entries.find(
+      ([, p]) => p.type === 'relation' && normId(p.relation?.database_id ?? '') === normId(tripsDbId),
+    );
+    const party = db.properties[RSVP_PARTY_PROPERTY];
+    const status = db.properties[RSVP_STATUS_PROPERTY];
+
+    if (!relation) throw new Error('no column links to the Field Trips database');
+    if (party?.type !== 'number') throw new Error(`"${RSVP_PARTY_PROPERTY}" must be a Number column`);
+    if (!['status', 'select'].includes(status?.type)) throw new Error(`"${RSVP_STATUS_PROPERTY}" must be a Status or Select column`);
+
+    const [relationName, relationProp] = relation;
+    const wanted = ['Reserved', 'Waitlist'];
+    const filter = {
+      or: wanted.map((name) => ({ property: RSVP_STATUS_PROPERTY, [status.type]: { equals: name } })),
+    };
+    const columns = [relationProp.id, party.id, status.id]
+      .map((id) => `filter_properties=${encodeURIComponent(id)}`)
+      .join('&');
+
+    const totals = new Map<string, RsvpTotals>();
+    let cursor: string | undefined;
+    do {
+      const data = await notion(`/databases/${rsvpDbId}/query?${columns}`, {
+        method: 'POST',
+        body: JSON.stringify({ filter, page_size: 100, ...(cursor ? { start_cursor: cursor } : {}) }),
+      });
+      for (const row of data.results) {
+        const props = row.properties;
+        const label: string | undefined = props[RSVP_STATUS_PROPERTY]?.[status.type]?.name;
+        if (!label || !wanted.includes(label)) continue;
+        const size = props[RSVP_PARTY_PROPERTY]?.number;
+        if (size == null) console.warn('[notion] An RSVP has no "Number in party"; counting it as 1.');
+        for (const trip of props[relationName]?.relation ?? []) {
+          const key = normId(trip.id);
+          const t = totals.get(key) ?? { reserved: 0, waitlist: 0 };
+          if (label === 'Reserved') t.reserved += size ?? 1;
+          else t.waitlist += size ?? 1;
+          totals.set(key, t);
+        }
+      }
+      cursor = data.has_more ? data.next_cursor : undefined;
+    } while (cursor);
+
+    return totals;
+  } catch (err) {
+    console.warn(`[notion] Could not read RSVP counts: ${(err as Error).message}. Showing no RSVP counts.`);
+    return null;
+  }
 }
 
 // ---------- Public API ----------
@@ -229,6 +317,20 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
       if (leader) leaders.push(leader);
     }
     trip.leaders = leaders;
+  }
+
+  // RSVP totals and the derived "Full" state.
+  const totals = await loadRsvpTotals(dbId);
+  for (const trip of trips) {
+    if (totals) {
+      const t = totals.get(normId(trip.id));
+      trip.reserved = t?.reserved ?? 0;
+      trip.waitlist = t?.waitlist ?? 0;
+    }
+    const reachedLimit =
+      trip.limit != null && trip.reserved != null && trip.reserved >= trip.limit;
+    trip.isFull =
+      !trip.isPast && (trip.status === 'Full' || (trip.status === 'Announced' && reachedLimit));
   }
 
   const upcoming = trips.filter((t) => !t.isPast).sort((a, b) => a.start.localeCompare(b.start));
@@ -302,4 +404,10 @@ export function formatTripDate(trip: Pick<FieldTrip, 'start' | 'end'>): string {
 /** "Alex", "Alex and Sam", "Alex, Sam, and Jo" */
 export function formatNames(names: string[]): string {
   return new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(names);
+}
+
+/** Spots left on a limited trip, or null if there is no limit or RSVP counts are unavailable. */
+export function spotsLeft(trip: FieldTrip): number | null {
+  if (trip.limit == null || trip.reserved == null) return null;
+  return Math.max(0, trip.limit - trip.reserved);
 }

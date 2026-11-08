@@ -8,10 +8,18 @@ interface Props {
 const { trip } = Astro.props;
 const upcoming = !trip.isPast;
 
-// Status pill for trips that are not simply open.
-const statusPill = upcoming && ['Full', 'Postponed', 'Canceled'].includes(trip.status) ? trip.status : null;
+// Status pill: "Full" (set in Notion, or the reserved total reached the limit),
+// plus Postponed and Canceled.
+const statusPill = !upcoming
+  ? null
+  : trip.isFull
+    ? 'Full'
+    : ['Postponed', 'Canceled'].includes(trip.status)
+      ? trip.status
+      : null;
+
 // RSVPs matter more when space is limited, so call out the limit on open trips.
-const limitPill = upcoming && trip.status === 'Announced' && trip.limit != null ? trip.limit : null;
+const limitPill = upcoming && !trip.isFull && trip.status === 'Announced' && trip.limit != null ? trip.limit : null;
 ---
 
 {statusPill && <span class={`badge badge-${statusPill.toLowerCase()}`}>{statusPill}</span>}

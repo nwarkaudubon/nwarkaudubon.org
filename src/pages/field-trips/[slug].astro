@@ -7,6 +7,7 @@ import {
   getTripBodyHtml,
   formatNames,
   formatTripDate,
+  spotsLeft,
   type FieldTrip,
   type Leader,
 } from '../../lib/notion';
@@ -36,9 +37,12 @@ const { trip, bodyHtml, leaderBios } = Astro.props;
 // Show a leader's section if they have a bio or contact info.
 const bios = leaderBios.filter((b) => b.html || b.email || b.phone);
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
-const open = !trip.isPast && trip.status === 'Announced';
-const rsvpSubject = encodeURIComponent(`RSVP: ${trip.name}`);
-const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
+const open = !trip.isPast && !trip.isFull && trip.status === 'Announced';
+const full = !trip.isPast && trip.isFull;
+const left = open ? spotsLeft(trip) : null;
+const rsvpBody = encodeURIComponent('Name:\nNumber in party:\n');
+const mailto = (prefix: string) =>
+  `mailto:trips@nwarkaudubon.org?subject=${encodeURIComponent(`${prefix}: ${trip.name}`)}&body=${rsvpBody}`;
 ---
 
 <BaseLayout title={trip.name}>
@@ -95,24 +99,30 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
         {trip.limit != null && (
           <p>
             <strong>This trip is limited to {trip.limit} participants.</strong>
+            {left !== null && <> {left === 0 ? 'No spots are left.' : `${left} ${left === 1 ? 'spot is' : 'spots are'} left.`}</>}
             {' '}Please RSVP so we can plan for the group.
           </p>
         )}
         <p>
           <strong>To RSVP,</strong> email{' '}
-          <a href={`mailto:trips@nwarkaudubon.org?subject=${rsvpSubject}&body=${rsvpBody}`}>
-            trips@nwarkaudubon.org
-          </a>{' '}
-          with the trip name, your name, and the number attending.
+          <a href={mailto('RSVP')}>trips@nwarkaudubon.org</a>{' '}
+          with the trip name, your name, and the number in your party.
         </p>
       </div>
     )
   }
   {
-    !trip.isPast && trip.status === 'Full' && (
+    full && (
       <div class="callout">
         <p>
-          This trip is full. Questions? Email <a href="mailto:trips@nwarkaudubon.org">trips@nwarkaudubon.org</a>.
+          <strong>This trip is full.</strong>
+          {trip.waitlist ? ` ${trip.waitlist} ${trip.waitlist === 1 ? 'person is' : 'people are'} on the waitlist.` : ''}
+          {' '}Please RSVP anyway to join the waitlist. People often cancel at the last minute, so spots do open up.
+        </p>
+        <p>
+          <strong>To join the waitlist,</strong> email{' '}
+          <a href={mailto('Waitlist')}>trips@nwarkaudubon.org</a>{' '}
+          with the trip name, your name, and the number in your party.
         </p>
       </div>
     )
