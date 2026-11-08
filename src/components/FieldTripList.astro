@@ -1,5 +1,5 @@
 ---
-import { formatTripDate, spotsLeft, type FieldTrip } from '../lib/notion';
+import { formatNames, formatTripDate, spotsLeft, type FieldTrip } from '../lib/notion';
 
 interface Props {
   trips: FieldTrip[];
@@ -24,6 +24,9 @@ const badge = (t: FieldTrip) =>
           {trip.location && <> · {trip.location}</>}
           {left !== null && <> · <strong>{left} {left === 1 ? 'spot' : 'spots'} left</strong></>}
         </p>
+        {!trip.isPast && trip.leaders.length > 0 && (
+          <p class="trip-meta">Led by {formatNames(trip.leaders.map((l) => l.name))}</p>
+        )}
         {trip.isPast && trip.checklistUrl && (
           <p class="trip-meta"><a href={trip.checklistUrl}>eBird checklist</a></p>
         )}

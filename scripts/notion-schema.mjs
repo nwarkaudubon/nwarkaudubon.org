@@ -1,8 +1,10 @@
 // Prints the Field Trips database's properties so we can map them in code.
-// Usage: npm run notion:schema   (reads NOTION_TOKEN and NOTION_FIELD_TRIPS_DB_ID from .env)
+// Usage: npm run notion:schema                 (the Field Trips database)
+//        npm run notion:schema -- <database-id>  (any other shared database)
+// Reads NOTION_TOKEN and NOTION_FIELD_TRIPS_DB_ID from .env.
 
 const token = process.env.NOTION_TOKEN;
-const dbId = process.env.NOTION_FIELD_TRIPS_DB_ID;
+const dbId = process.argv[2] ?? process.env.NOTION_FIELD_TRIPS_DB_ID;
 
 if (!token || !dbId) {
   console.error('Missing NOTION_TOKEN or NOTION_FIELD_TRIPS_DB_ID. Add them to .env first.');
@@ -29,5 +31,6 @@ for (const [name, prop] of Object.entries(db.properties)) {
   let detail = '';
   const options = prop.select?.options ?? prop.status?.options ?? prop.multi_select?.options;
   if (options) detail = ` [${options.map((o) => o.name).join(', ')}]`;
+  if (prop.type === 'relation') detail = ` -> database ${prop.relation?.database_id}`;
   console.log(`- ${name}: ${prop.type}${detail}`);
 }

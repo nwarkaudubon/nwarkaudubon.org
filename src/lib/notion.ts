@@ -11,6 +11,18 @@ const TIME_ZONE = 'America/Chicago';
 const PUBLIC_STATUSES = ['Announced', 'Full', 'Postponed', 'Canceled', 'Completed'] as const;
 export type TripStatus = (typeof PUBLIC_STATUSES)[number];
 
+/** Name of the relation column on the Field Trips database that points at trip leaders. */
+const LEADERS_PROPERTY = 'Trip Leaders';
+
+export interface Leader {
+  id: string;
+  name: string;
+  /** From the first Email column on the leader's page, if any. Published on purpose. */
+  email?: string;
+  /** From the first Phone column on the leader's page, if any. Published on purpose. */
+  phone?: string;
+}
+
 export interface FieldTrip {
   id: string;
   slug: string;
@@ -28,6 +40,10 @@ export interface FieldTrip {
   participants: number | null;
   limit: number | null;
   isPast: boolean;
+  /** Page IDs from the Trip Leaders relation. */
+  leaderIds: string[];
+  /** Leaders whose pages the site could read (filled in after the trips load). */
+  leaders: Leader[];
 }
 
 // ---------- API ----------
@@ -116,7 +132,49 @@ function pageToTrip(page: any): FieldTrip | null {
     participants: p.Participants?.number ?? null,
     limit: p['Participant limit']?.number ?? null,
     isPast: status === 'Completed' || datePassed,
+    leaderIds: (p[LEADERS_PROPERTY]?.relation ?? []).map((r: { id: string }) => r.id),
+    leaders: [],
   };
+}
+
+// ---------- Trip leaders ----------
+
+const leaderCache = new Map<string, Promise<Leader | null>>();
+const bioCache = new Map<string, Promise<string>>();
+
+/** Reads a leader's name (the title of their Notion page). Null if the page isn't shared. */
+function getLeader(id: string): Promise<Leader | null> {
+  if (!leaderCache.has(id)) {
+    leaderCache.set(
+      id,
+      (async () => {
+        try {
+          const page = await notion(`/pages/${id}`);
+          const title = Object.values<any>(page.properties).find((p) => p.type === 'title');
+          const name = plain(title?.title).trim();
+          // Leaders choose to share their contact info so participants can reach them.
+          const email = Object.values<any>(page.properties).find((p) => p.type === 'email')?.email;
+          const phone = Object.values<any>(page.properties).find((p) => p.type === 'phone_number')?.phone_number;
+          return name ? { id, name, email: email || undefined, phone: phone || undefined } : null;
+        } catch (err) {
+          console.warn(`[notion] Could not read trip leader ${id} (is that database shared with the connection?)`);
+          return null;
+        }
+      })(),
+    );
+  }
+  return leaderCache.get(id)!;
+}
+
+/** A leader's bio: the body of their Notion page, rendered to HTML. Empty if unavailable. */
+export function getLeaderBioHtml(id: string): Promise<string> {
+  if (!bioCache.has(id)) {
+    bioCache.set(
+      id,
+      getTripBodyHtml(id).catch(() => ''),
+    );
+  }
+  return bioCache.get(id)!;
 }
 
 // ---------- Public API ----------
@@ -163,6 +221,16 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
     .filter((t): t is FieldTrip => t !== null)
     // A postponed/canceled trip whose date has passed has served its purpose.
     .filter((t) => !(t.isPast && (t.status === 'Postponed' || t.status === 'Canceled')));
+
+  // Resolve leader names. Sequential and cached, so each leader costs one request in total.
+  for (const trip of trips) {
+    const leaders: Leader[] = [];
+    for (const id of trip.leaderIds) {
+      const leader = await getLeader(id);
+      if (leader) leaders.push(leader);
+    }
+    trip.leaders = leaders;
+  }
 
   const upcoming = trips.filter((t) => !t.isPast).sort((a, b) => a.start.localeCompare(b.start));
   const past = trips.filter((t) => t.isPast).sort((a, b) => b.start.localeCompare(a.start));
@@ -230,6 +298,11 @@ export function formatTripDate(trip: Pick<FieldTrip, 'start' | 'end'>): string {
     return `${fmtDay(start, full)}${time}`;
   }
   return `${fmtDay(start, { ...full, year: undefined })} – ${fmtDay(end, full)}`;
+}
+
+/** "Alex", "Alex and Sam", "Alex, Sam, and Jo" */
+export function formatNames(names: string[]): string {
+  return new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(names);
 }
 
 /** Spots left for an open trip, or null when there is no limit. */

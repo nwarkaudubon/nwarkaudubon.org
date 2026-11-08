@@ -1,16 +1,27 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getFieldTrips, getTripBodyHtml, formatTripDate, spotsLeft, type FieldTrip } from '../../lib/notion';
+import {
+  getFieldTrips,
+  getLeaderBioHtml,
+  getTripBodyHtml,
+  formatNames,
+  formatTripDate,
+  spotsLeft,
+  type FieldTrip,
+  type Leader,
+} from '../../lib/notion';
 
 export async function getStaticPaths() {
   const trips = await getFieldTrips();
   const paths = [];
   // Sequential on purpose: Notion limits requests to about 3 per second.
   for (const trip of trips) {
-    paths.push({
-      params: { slug: trip.slug },
-      props: { trip, bodyHtml: await getTripBodyHtml(trip.id) },
-    });
+    const bodyHtml = await getTripBodyHtml(trip.id);
+    const leaderBios = [];
+    for (const leader of trip.leaders) {
+      leaderBios.push({ ...leader, html: await getLeaderBioHtml(leader.id) });
+    }
+    paths.push({ params: { slug: trip.slug }, props: { trip, bodyHtml, leaderBios } });
   }
   return paths;
 }
@@ -18,9 +29,13 @@ export async function getStaticPaths() {
 interface Props {
   trip: FieldTrip;
   bodyHtml: string;
+  leaderBios: (Leader & { html: string })[];
 }
 
-const { trip, bodyHtml } = Astro.props;
+const { trip, bodyHtml, leaderBios } = Astro.props;
+// Show a leader's section if they have a bio or contact info.
+const bios = leaderBios.filter((b) => b.html || b.email || b.phone);
+const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
 const open = !trip.isPast && trip.status === 'Announced';
 const left = open ? spotsLeft(trip) : null;
 const rsvpSubject = encodeURIComponent(`RSVP: ${trip.name}`);
@@ -42,6 +57,14 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
   <dl class="trip-details">
     <dt>When</dt>
     <dd>{formatTripDate(trip)}</dd>
+    {
+      trip.leaders.length > 0 && (
+        <>
+          <dt>Led by</dt>
+          <dd>{formatNames(trip.leaders.map((l) => l.name))}</dd>
+        </>
+      )
+    }
     {
       trip.location && (
         <>
@@ -103,4 +126,25 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
   }
 
   <div class="trip-body" set:html={bodyHtml} />
+
+  {
+    bios.length > 0 && (
+      <section class="leader-bios">
+        <h2>{bios.length === 1 ? 'About your trip leader' : 'About your trip leaders'}</h2>
+        {bios.map((b) => (
+          <>
+            <h3>{b.name}</h3>
+            {(b.email || b.phone) && (
+              <p>
+                {b.email && <><a href={`mailto:${b.email}`}>{b.email}</a></>}
+                {b.email && b.phone && ' · '}
+                {b.phone && <><a href={telHref(b.phone)}>{b.phone}</a></>}
+              </p>
+            )}
+            <div class="trip-body" set:html={b.html} />
+          </>
+        ))}
+      </section>
+    )
+  }
 </BaseLayout>
