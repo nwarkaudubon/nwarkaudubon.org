@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const items = await getCollection('archive');
+
+// Group by category (alphabetical), newest content first within each group.
+const groups = new Map<string, typeof items>();
+for (const item of items) {
+  const list = groups.get(item.data.category) ?? [];
+  list.push(item);
+  groups.set(item.data.category, list);
+}
+const categories = [...groups.keys()].sort((a, b) => a.localeCompare(b));
+for (const list of groups.values()) {
+  list.sort((a, b) => (b.data.year ?? 0) - (a.data.year ?? 0) || a.data.title.localeCompare(b.data.title));
+}
+---
+
+<BaseLayout
+  title="Archive"
+  description="Older NWAAS pages and materials, kept for reference."
+  noindex
+>
+  <h1>Archive</h1>
+  <p>
+    Older pages and materials from NWAAS, kept for reference. Details such as dates, deadlines,
+    and contact information may be out of date. For current information, see the
+    <a href="/">home page</a>.
+  </p>
+
+  {
+    categories.map((category) => (
+      <section>
+        <h2>{category}</h2>
+        <ul class="topic-list">
+          {groups.get(category)!.map((item) => (
+            <li>
+              <a href={`/archive/${item.id}/`}>{item.data.title}</a>
+              {item.data.year && <> <span class="trip-meta">({item.data.year})</span></>}
+              <br />
+              <span class="trip-meta">{item.data.summary}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>

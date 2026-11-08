@@ -1,0 +1,26 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const items = await getCollection('archive');
+  return items.map((item) => ({ params: { slug: item.id }, props: { item } }));
+}
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+---
+
+<BaseLayout title={`${item.data.title} (archived)`} description={item.data.summary} noindex={!item.data.indexable}>
+  <p><a href="/archive/">&larr; Archive</a></p>
+
+  <div class="archive-banner" role="note">
+    <strong>Archived page.</strong> Kept for reference. Dates, deadlines and contact details
+    below may be out of date. See the <a href="/">home page</a> for current information.
+  </div>
+
+  <h1>{item.data.title}</h1>
+  <div class="prose">
+    <Content />
+  </div>
+</BaseLayout>

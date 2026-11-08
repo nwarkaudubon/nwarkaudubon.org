@@ -6,12 +6,15 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  /** Ask search engines not to list this page (used for archived content). */
+  noindex?: boolean;
 }
 
 const siteName = 'Northwest Arkansas Audubon Society';
 const {
   title,
   description = 'A Northwest Arkansas community non-profit committed to preserving the natural world through education, environmental study, and habitat protection.',
+  noindex = false,
 } = Astro.props;
 
 const fullTitle = title ? `${title} | ${siteName}` : siteName;
@@ -24,6 +27,7 @@ const fullTitle = title ? `${title} | ${siteName}` : siteName;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
