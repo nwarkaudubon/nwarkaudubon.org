@@ -177,10 +177,20 @@ async function fetchBlocks(blockId: string): Promise<Block[]> {
   } while (cursor);
 
   for (const block of blocks) {
-    if (block.has_children) block.children = await fetchBlocks(block.id);
+    // Only list items have nested content we render. Other blocks with children
+    // (linked databases, synced blocks, child pages) may point outside the shared
+    // database, which Notion rejects with a 404.
+    if (!block.has_children || !RENDERED_NESTED_TYPES.has(block.type)) continue;
+    try {
+      block.children = await fetchBlocks(block.id);
+    } catch (err) {
+      console.warn(`[notion] Skipping nested content of block ${block.id}: ${(err as Error).message}`);
+    }
   }
   return blocks;
 }
+
+const RENDERED_NESTED_TYPES = new Set(['bulleted_list_item', 'numbered_list_item']);
 
 // ---------- Display helpers ----------
 
