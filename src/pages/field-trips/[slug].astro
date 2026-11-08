@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import TripBadges from '../../components/TripBadges.astro';
 import {
   getFieldTrips,
   getLeaderBioHtml,
@@ -47,11 +48,7 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
 
   <h1>
     {trip.name}
-    {
-      !trip.isPast && ['Full', 'Postponed', 'Canceled'].includes(trip.status) && (
-        <span class={`badge badge-${trip.status.toLowerCase()}`}>{trip.status}</span>
-      )
-    }
+    <TripBadges trip={trip} />
   </h1>
 
   <dl class="trip-details">
@@ -105,6 +102,15 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
   {
     open && (
       <div class="callout">
+        {trip.limit != null && (
+          <p>
+            <strong>This trip is limited to {trip.limit} participants.</strong>
+            {left !== null && trip.participants != null && (
+              <> {left === 0 ? 'No spots are left.' : `${left} ${left === 1 ? 'spot is' : 'spots are'} left.`}</>
+            )}
+            {' '}Please RSVP so we can plan for the group.
+          </p>
+        )}
         <p>
           <strong>To RSVP,</strong> email{' '}
           <a href={`mailto:trips@nwarkaudubon.org?subject=${rsvpSubject}&body=${rsvpBody}`}>

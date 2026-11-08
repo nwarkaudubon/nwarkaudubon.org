@@ -1,13 +1,12 @@
 ---
 import { formatNames, formatTripDate, spotsLeft, type FieldTrip } from '../lib/notion';
+import TripBadges from './TripBadges.astro';
 
 interface Props {
   trips: FieldTrip[];
 }
 
 const { trips } = Astro.props;
-const badge = (t: FieldTrip) =>
-  ['Full', 'Postponed', 'Canceled'].includes(t.status) && !t.isPast ? t.status : null;
 ---
 
 {
@@ -17,7 +16,7 @@ const badge = (t: FieldTrip) =>
       <article class="field-trip">
         <h3>
           <a href={`/field-trips/${trip.slug}/`}>{trip.name}</a>
-          {badge(trip) && <span class={`badge badge-${trip.status.toLowerCase()}`}>{badge(trip)}</span>}
+          <TripBadges trip={trip} />
         </h3>
         <p class="trip-meta">
           {formatTripDate(trip)}

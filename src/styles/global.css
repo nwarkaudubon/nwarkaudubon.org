@@ -321,8 +321,8 @@ address {
 .badge {
   display: inline-block;
   margin-left: 0.5rem;
-  padding: 0.1rem 0.6rem;
-  border-radius: 3px;
+  padding: 0.1rem 0.7rem;
+  border-radius: 999px;
   background: var(--color-manila);
   border: 1px solid var(--color-border);
   color: var(--color-text);
@@ -330,6 +330,13 @@ address {
   font-size: 0.85rem;
   font-weight: 600;
   vertical-align: middle;
+}
+
+/* "Limited to N": filled so it stands out in a list, since RSVPs matter most for these trips. */
+.badge-limit {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
 }
 
 .badge-canceled {
