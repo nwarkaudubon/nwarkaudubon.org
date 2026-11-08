@@ -1,0 +1,33 @@
+---
+import { formatTripDate, spotsLeft, type FieldTrip } from '../lib/notion';
+
+interface Props {
+  trips: FieldTrip[];
+}
+
+const { trips } = Astro.props;
+const badge = (t: FieldTrip) =>
+  ['Full', 'Postponed', 'Canceled'].includes(t.status) && !t.isPast ? t.status : null;
+---
+
+{
+  trips.map((trip) => {
+    const left = !trip.isPast && trip.status === 'Announced' ? spotsLeft(trip) : null;
+    return (
+      <article class="field-trip">
+        <h3>
+          <a href={`/field-trips/${trip.slug}/`}>{trip.name}</a>
+          {badge(trip) && <span class={`badge badge-${trip.status.toLowerCase()}`}>{badge(trip)}</span>}
+        </h3>
+        <p class="trip-meta">
+          {formatTripDate(trip)}
+          {trip.location && <> · {trip.location}{trip.county && `, ${trip.county} County`}</>}
+          {left !== null && <> · <strong>{left} {left === 1 ? 'spot' : 'spots'} left</strong></>}
+        </p>
+        {trip.isPast && trip.checklistUrl && (
+          <p class="trip-meta"><a href={trip.checklistUrl}>eBird checklist</a></p>
+        )}
+      </article>
+    );
+  })
+}

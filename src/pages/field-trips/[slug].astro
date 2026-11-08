@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getFieldTrips, getTripBodyHtml, formatTripDate, spotsLeft, type FieldTrip } from '../../lib/notion';
+
+export async function getStaticPaths() {
+  const trips = await getFieldTrips();
+  const paths = [];
+  // Sequential on purpose: Notion limits requests to about 3 per second.
+  for (const trip of trips) {
+    paths.push({
+      params: { slug: trip.slug },
+      props: { trip, bodyHtml: await getTripBodyHtml(trip.id) },
+    });
+  }
+  return paths;
+}
+
+interface Props {
+  trip: FieldTrip;
+  bodyHtml: string;
+}
+
+const { trip, bodyHtml } = Astro.props;
+const open = !trip.isPast && trip.status === 'Announced';
+const left = open ? spotsLeft(trip) : null;
+const rsvpSubject = encodeURIComponent(`RSVP: ${trip.name}`);
+const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
+---
+
+<BaseLayout title={trip.name}>
+  <p><a href="/field-trips/">&larr; All field trips</a></p>
+
+  <h1>
+    {trip.name}
+    {
+      !trip.isPast && ['Full', 'Postponed', 'Canceled'].includes(trip.status) && (
+        <span class={`badge badge-${trip.status.toLowerCase()}`}>{trip.status}</span>
+      )
+    }
+  </h1>
+
+  <dl class="trip-details">
+    <dt>When</dt>
+    <dd>{formatTripDate(trip)}</dd>
+    {
+      trip.location && (
+        <>
+          <dt>Where</dt>
+          <dd>
+            {trip.location}
+            {trip.county && `, ${trip.county} County`}
+            {trip.mapUrl && <> (<a href={trip.mapUrl}>map</a>)</>}
+          </dd>
+        </>
+      )
+    }
+    {
+      trip.coordinates && (
+        <>
+          <dt>GPS</dt>
+          <dd>{trip.coordinates}</dd>
+        </>
+      )
+    }
+    {
+      left !== null && (
+        <>
+          <dt>Spots</dt>
+          <dd>{left} left</dd>
+        </>
+      )
+    }
+    {
+      trip.isPast && trip.checklistUrl && (
+        <>
+          <dt>Results</dt>
+          <dd><a href={trip.checklistUrl}>eBird checklist</a></dd>
+        </>
+      )
+    }
+  </dl>
+
+  {
+    open && (
+      <div class="callout">
+        <p>
+          <strong>To RSVP,</strong> email{' '}
+          <a href={`mailto:trips@nwarkaudubon.org?subject=${rsvpSubject}&body=${rsvpBody}`}>
+            trips@nwarkaudubon.org
+          </a>{' '}
+          with the trip name, your name, and the number attending.
+        </p>
+      </div>
+    )
+  }
+  {
+    !trip.isPast && trip.status === 'Full' && (
+      <div class="callout">
+        <p>
+          This trip is full. Questions? Email <a href="mailto:trips@nwarkaudubon.org">trips@nwarkaudubon.org</a>.
+        </p>
+      </div>
+    )
+  }
+
+  <div class="trip-body" set:html={bodyHtml} />
+</BaseLayout>

@@ -1,13 +1,55 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FieldTripList from '../components/FieldTripList.astro';
+import { getUpcomingTrips } from '../lib/notion';
+
+const upcoming = await getUpcomingTrips();
 ---
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Northwest Arkansas Audubon Society</title>
-  </head>
-  <body>
-    <h1>Northwest Arkansas Audubon Society</h1>
-    <p>New site coming soon.</p>
-  </body>
-</html>
+
+<BaseLayout>
+  <div class="hero">
+    <img
+      src="/images/home.jpg"
+      alt="Birders with binoculars and spotting scopes on a paved trail."
+      width="733"
+      height="379"
+    />
+  </div>
+
+  <h1>Northwest Arkansas Audubon Society</h1>
+  <p class="lead">
+    The Northwest Arkansas Audubon Society is a registered non-profit organization serving
+    Benton, Carroll, Madison and Washington counties, committed to preserving the natural
+    world in Northwest Arkansas through education, environmental study and habitat protection.
+  </p>
+
+  <section class="callout">
+    <h2>Quick links</h2>
+    <ul>
+      <li><a href="/places-to-bird/">Places to Bird in Northwest Arkansas</a></li>
+      <li><a href="/conservation/window-collisions/">Preventing Window Collisions at Home</a></li>
+      <li>
+        Injured bird? Check the
+        <a href="https://www.onthefeeder.com/wildlife-rescue-directory/">Wildlife Rescue Directory</a>
+      </li>
+      <li><a href="https://www.facebook.com/nwarkaudubon">NWAAS on Facebook</a></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Upcoming Field Trips &amp; Events</h2>
+    <p>
+      All field trips are free and open to the public. You do not have to be a member to
+      attend. For questions or to RSVP, email
+      <a href="mailto:trips@nwarkaudubon.org">trips@nwarkaudubon.org</a>.
+    </p>
+    {
+      upcoming.length > 0 ? (
+        <FieldTripList trips={upcoming} />
+      ) : (
+        <p>No field trips are announced right now. Check back soon, or follow us on Facebook.</p>
+      )
+    }
+    <p><a href="/field-trips/">See all field trips, including past trips &rarr;</a></p>
+  </section>
+</BaseLayout>

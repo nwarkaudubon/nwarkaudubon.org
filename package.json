@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "notion:schema": "node --env-file=.env scripts/notion-schema.mjs"
   },
   "dependencies": {
     "astro": "^7.4.7"

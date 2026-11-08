@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FieldTripList from '../../components/FieldTripList.astro';
+import { getUpcomingTrips, getPastTrips } from '../../lib/notion';
+
+const upcoming = await getUpcomingTrips();
+const past = await getPastTrips();
+---
+
+<BaseLayout title="Field Trips">
+  <h1>Field Trips</h1>
+  <p>
+    All field trips are free and open to the public. You do not have to be a member of NWAAS
+    to attend. For questions or to RSVP, email
+    <a href="mailto:trips@nwarkaudubon.org">trips@nwarkaudubon.org</a>.
+  </p>
+
+  <h2>Upcoming</h2>
+  {
+    upcoming.length > 0 ? (
+      <FieldTripList trips={upcoming} />
+    ) : (
+      <p>No field trips are announced right now. Check back soon!</p>
+    )
+  }
+
+  <h2>Past field trips</h2>
+  {past.length > 0 ? <FieldTripList trips={past} /> : <p>No past field trips yet.</p>}
+</BaseLayout>
