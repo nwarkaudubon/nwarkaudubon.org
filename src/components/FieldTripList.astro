@@ -1,5 +1,5 @@
 ---
-import { formatNames, formatTripDate, spotsLeft, type FieldTrip } from '../lib/notion';
+import { formatNames, formatTripDate, type FieldTrip } from '../lib/notion';
 import TripBadges from './TripBadges.astro';
 
 interface Props {
@@ -11,7 +11,6 @@ const { trips } = Astro.props;
 
 {
   trips.map((trip) => {
-    const left = !trip.isPast && trip.status === 'Announced' ? spotsLeft(trip) : null;
     return (
       <article class="field-trip">
         <h3>
@@ -21,7 +20,6 @@ const { trips } = Astro.props;
         <p class="trip-meta">
           {formatTripDate(trip)}
           {trip.location && <> · {trip.location}</>}
-          {left !== null && <> · <strong>{left} {left === 1 ? 'spot' : 'spots'} left</strong></>}
         </p>
         {!trip.isPast && trip.leaders.length > 0 && (
           <p class="trip-meta">Led by {formatNames(trip.leaders.map((l) => l.name))}</p>

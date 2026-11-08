@@ -37,7 +37,6 @@ export interface FieldTrip {
   /** Google Maps link built from the coordinates (null if they can't be parsed). */
   mapUrl: string | null;
   checklistUrl: string | null;
-  participants: number | null;
   limit: number | null;
   isPast: boolean;
   /** Page IDs from the Trip Leaders relation. */
@@ -129,7 +128,7 @@ function pageToTrip(page: any): FieldTrip | null {
     // The County and "Map link" columns are for internal use and are ignored on the site.
     mapUrl: googleMapsUrl(coordinates),
     checklistUrl: p.Checklist?.url ?? null,
-    participants: p.Participants?.number ?? null,
+    // The Participants column is attendance after the fact (internal), so the site ignores it.
     limit: p['Participant limit']?.number ?? null,
     isPast: status === 'Completed' || datePassed,
     leaderIds: (p[LEADERS_PROPERTY]?.relation ?? []).map((r: { id: string }) => r.id),
@@ -303,10 +302,4 @@ export function formatTripDate(trip: Pick<FieldTrip, 'start' | 'end'>): string {
 /** "Alex", "Alex and Sam", "Alex, Sam, and Jo" */
 export function formatNames(names: string[]): string {
   return new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(names);
-}
-
-/** Spots left for an open trip, or null when there is no limit. */
-export function spotsLeft(trip: FieldTrip): number | null {
-  if (trip.limit == null) return null;
-  return Math.max(0, trip.limit - (trip.participants ?? 0));
 }

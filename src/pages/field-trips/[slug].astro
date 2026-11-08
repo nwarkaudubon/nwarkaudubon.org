@@ -7,7 +7,6 @@ import {
   getTripBodyHtml,
   formatNames,
   formatTripDate,
-  spotsLeft,
   type FieldTrip,
   type Leader,
 } from '../../lib/notion';
@@ -38,7 +37,6 @@ const { trip, bodyHtml, leaderBios } = Astro.props;
 const bios = leaderBios.filter((b) => b.html || b.email || b.phone);
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
 const open = !trip.isPast && trip.status === 'Announced';
-const left = open ? spotsLeft(trip) : null;
 const rsvpSubject = encodeURIComponent(`RSVP: ${trip.name}`);
 const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
 ---
@@ -82,14 +80,6 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
       )
     }
     {
-      left !== null && (
-        <>
-          <dt>Spots</dt>
-          <dd>{left} left</dd>
-        </>
-      )
-    }
-    {
       trip.isPast && trip.checklistUrl && (
         <>
           <dt>Results</dt>
@@ -105,9 +95,6 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
         {trip.limit != null && (
           <p>
             <strong>This trip is limited to {trip.limit} participants.</strong>
-            {left !== null && trip.participants != null && (
-              <> {left === 0 ? 'No spots are left.' : `${left} ${left === 1 ? 'spot is' : 'spots are'} left.`}</>
-            )}
             {' '}Please RSVP so we can plan for the group.
           </p>
         )}
