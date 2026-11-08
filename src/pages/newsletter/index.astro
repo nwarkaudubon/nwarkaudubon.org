@@ -1,8 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+// Newsletters now live in the archive. This keeps /newsletter/ working for old links.
+// Safe to delete once redirects are set up at cutover.
+return Astro.redirect('/archive/newsletters/', 301);
 ---
-
-<BaseLayout title="Newsletter">
-  <h1>Newsletter</h1>
-  <p>This page is coming soon.</p>
-</BaseLayout>
