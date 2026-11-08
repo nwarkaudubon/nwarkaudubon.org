@@ -20,8 +20,9 @@ export interface FieldTrip {
   start: string;
   end: string | null;
   location: string;
-  county: string;
+  /** Raw GPS text from Notion, e.g. "36.442745, -93.950241" */
   coordinates: string;
+  /** Google Maps link built from the coordinates (null if they can't be parsed). */
   mapUrl: string | null;
   checklistUrl: string | null;
   participants: number | null;
@@ -68,6 +69,16 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+/** Builds a Google Maps link from "lat, lng" text. Returns null if it isn't valid coordinates. */
+export function googleMapsUrl(coordinates: string): string | null {
+  const m = coordinates.match(/(-?\d{1,3}(?:\.\d+)?)\s*[,\s]\s*(-?\d{1,3}(?:\.\d+)?)/);
+  if (!m) return null;
+  const lat = Number(m[1]);
+  const lng = Number(m[2]);
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+}
+
 /** Today's date (YYYY-MM-DD) in Arkansas. */
 const todayLocal = () => new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(new Date());
 
@@ -85,6 +96,7 @@ function pageToTrip(page: any): FieldTrip | null {
     return null;
   }
 
+  const coordinates = plain(p.Coordinates?.rich_text).trim();
   const end: string | null = p.Date.date.end ?? null;
   const lastDay = (end ?? start).slice(0, 10);
   const datePassed = lastDay < todayLocal();
@@ -97,9 +109,9 @@ function pageToTrip(page: any): FieldTrip | null {
     start,
     end,
     location: plain(p.Location?.rich_text).trim(),
-    county: plain(p.County?.rich_text).trim(),
-    coordinates: plain(p.Coordinates?.rich_text).trim(),
-    mapUrl: p['Map link']?.url ?? null,
+    coordinates,
+    // The County and "Map link" columns are for internal use and are ignored on the site.
+    mapUrl: googleMapsUrl(coordinates),
     checklistUrl: p.Checklist?.url ?? null,
     participants: p.Participants?.number ?? null,
     limit: p['Participant limit']?.number ?? null,

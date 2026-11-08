@@ -21,7 +21,7 @@ const badge = (t: FieldTrip) =>
         </h3>
         <p class="trip-meta">
           {formatTripDate(trip)}
-          {trip.location && <> · {trip.location}{trip.county && `, ${trip.county} County`}</>}
+          {trip.location && <> · {trip.location}</>}
           {left !== null && <> · <strong>{left} {left === 1 ? 'spot' : 'spots'} left</strong></>}
         </p>
         {trip.isPast && trip.checklistUrl && (

@@ -46,11 +46,7 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
       trip.location && (
         <>
           <dt>Where</dt>
-          <dd>
-            {trip.location}
-            {trip.county && `, ${trip.county} County`}
-            {trip.mapUrl && <> (<a href={trip.mapUrl}>map</a>)</>}
-          </dd>
+          <dd>{trip.location}</dd>
         </>
       )
     }
@@ -58,7 +54,10 @@ const rsvpBody = encodeURIComponent('Name:\nNumber attending:\n');
       trip.coordinates && (
         <>
           <dt>GPS</dt>
-          <dd>{trip.coordinates}</dd>
+          <dd>
+            {trip.coordinates}
+            {trip.mapUrl && <> (<a href={trip.mapUrl}>map</a>)</>}
+          </dd>
         </>
       )
     }
