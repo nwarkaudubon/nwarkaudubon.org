@@ -1,0 +1,50 @@
+// Place-to-bird guides (PDFs). To add one: drop the PDF in public/documents/places-to-bird/
+// and add a line here. The page sorts the list alphabetically.
+export interface Place {
+  name: string;
+  file: string;
+}
+
+export const places: Place[] = [
+  { name: "Baker Prairie Natural Area", file: "baker-prairie-natural-area.pdf" },
+  { name: "Beatie Prairie Botanical Area in August 2011", file: "beatie-prairie-botanical-area-in-august-2011.pdf" },
+  { name: "Beaver Lake from Rocky Branch to the Dam", file: "beaverlakefromrockybranchtothedamdec2011.pdf" },
+  { name: "Beaver Lake Nursery Pond", file: "birding-beaver-lake-nursery-pond-june-2012.pdf" },
+  { name: "Birding in the Maysville area", file: "birding-in-the-maysville-area.pdf" },
+  { name: "Bob Kidd Lake", file: "bob-kidd-lake.pdf" },
+  { name: "Cherokee prairies in the Arkansas Valley", file: "cherokee-prairies-in-the-arkansas-valley.pdf" },
+  { name: "Chesney Prairie", file: "birding-chesney-prairie-natural-area.pdf" },
+  { name: "Compton Gardens and Crystal Bridges", file: "compton-gardens-and-crystal-bridges-june-2013.pdf" },
+  { name: "Craig State Fish hatchery at Centerton", file: "craig-state-fish-hatchery-at-centerton-210417.pdf" },
+  { name: "Devil's Den", file: "devil-s-den-state-park-version-of-march-2017.pdf" },
+  { name: "Devil's Eyebrow Natural Area", file: "devil-s-eyebrow-natural-area-dena-february-15-2018.pdf" },
+  { name: "Eagle Watch Nature Trail", file: "birding-eagle-watch-nature-trail-revised-august-18-2021.pdf" },
+  { name: "Frog Bayou", file: "birding-frog-bayou-wma-vicinity-in-the-arkansas-valley-2017.pdf" },
+  { name: "Gentry and Round Prairie including Safari and Floyd Moore Road", file: "gentry-and-round-prairie-including-safari-and-floyd-moore-road.pdf" },
+  { name: "Gentry Prairie", file: "gentry-prairie-edited-version-of-july-16-2013.pdf" },
+  { name: "Gravette Wildlife Observation Trail", file: "gravette-wildlife-observation-trail-june-2012.pdf" },
+  { name: "Hobbs State Park Conservation Area", file: "hobbs-state-park-conservation-area-june-2019.pdf" },
+  { name: "Kessler Mountain Birding", file: "kessler-mountain-forest-and-regional-park-june-4-2019.pdf" },
+  { name: "Kibler Bottoms Loop", file: "kibler-bottoms-loop-2020.pdf" },
+  { name: "Lake Elmdale", file: "lake-elmdale.pdf" },
+  { name: "Lake Fayetteville Park", file: "lake-fayetteville-guide-december-2014-version.pdf" },
+  { name: "Lake Sequoyah", file: "birding-lake-sequoyah-november-2011.pdf" },
+  { name: "Lindsley's Prairie Auto Tour", file: "lindsleys-prairie-auto-tour-january-2013.pdf" },
+  { name: "Madison County Wildlife Management Area", file: "madison-county-wma-130622.pdf" },
+  { name: "Moberly Manor water retention pond", file: "moberly-manor-water-retention-pond.pdf" },
+  { name: "Ninestone Land Trust", file: "birding-ninestone-with-images-feb-13-2013.pdf" },
+  { name: "Northwest Arkansas Bald Eagle Auto Tour", file: "northwest-arkansas-winter-bald-eagle-auto-tour-dec-2012.pdf" },
+  { name: "Osage Prairie Botanical Area", file: "osage-prairie-botanical-area.pdf" },
+  { name: "Pea Ridge National Military Park", file: "pea-ridge-national-military-park-june-4-2019.pdf" },
+  { name: "Red Crossbill observation points near Shores Lake", file: "red-crossbill-observation-points-near-shores-lake-2020.pdf" },
+  { name: "Shores Lake and Fern, in Ozark National Forest", file: "shores-lake-and-fern-in-the-ozark-national-forest-13-nov-2010.pdf" },
+  { name: "Siloam Springs City Lake", file: "siloam-springs-city-lake.pdf" },
+  { name: "Spring migration birding: Kibler Bottoms, Alma Wastewater and Frog Bayou WMA (by Vivek)", file: "spring-migration-birding-kibler-bottoms-alma-wastewater-and-frog-bayou-wma-by-vivek-210417.pdf" },
+  { name: "Tallgrass Prairie Preserve", file: "tallgrass-prairie-preserve-april-19-2017.pdf" },
+  { name: "Tenkiller Ferry Lake", file: "tenkiller-ferry-lake-january-15-2017.pdf" },
+  { name: "Upper Buffalo and Cave Mountain", file: "birding-upper-buffalo-river-and-cave-mountain-june-11-2019.pdf" },
+  { name: "Wastewater Treatment Plant, Paul R. Noland", file: "paul-r-noland-wastewater-treatment-facility-feb-2013.pdf" },
+  { name: "Wedington Small Game Area", file: "wedington-small-game-area-for-nwaas-web-page-130204.pdf" },
+  { name: "Whitney Mountain", file: "whitney-mountain-may-2013-pdf.pdf" },
+  { name: "Woolsey Wet Prairie", file: "woolsey-wet-prairie-wildlife-sanctuary-july-24-2018.pdf" },
+];

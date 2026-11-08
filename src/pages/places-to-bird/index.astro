@@ -1,8 +1,82 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { places } from '../../data/places';
+
+const sorted = [...places].sort((a, b) => a.name.localeCompare(b.name));
+
+const photos = [
+  { file: 'upper-buffalo-river', caption: 'Upper Buffalo River' },
+  { file: 'chesney-prairie', caption: 'Chesney Prairie' },
+  { file: 'serviceberry-wedington', caption: 'Serviceberry, Wedington Ridge, Ozark National Forest' },
+  { file: 'fish-hatchery-centerton', caption: 'State Fish Hatchery at Centerton' },
+  { file: 'buffalo-river-steel-creek', caption: 'Buffalo River, from above Steel Creek Campground' },
+];
+
+// TODO: confirm these are still current before launch.
+const guides = [
+  { name: 'Geneva Green', phone: '919 475 7668', email: 'Greenstonegeneva@gmail.com' },
+  { name: 'Sarah Morris', phone: '870 926-7127', email: 'saraha.morris1@gmail.com' },
+  { name: 'Adam Schaffer', phone: '479 283 0318', email: 'adamschaffer2@yahoo.com' },
+  { name: 'Jay Walco', phone: '901-853-3378', email: 'walko@BELLSOUTH.NET' },
+];
 ---
 
-<BaseLayout title="Places to Bird">
-  <h1>Places to Bird</h1>
-  <p>This page is coming soon.</p>
+<BaseLayout
+  title="Places to Bird"
+  description="Site guides and birding hotspots in Northwest Arkansas."
+>
+  <h1>Places to Bird in Northwest Arkansas</h1>
+
+  <div class="callout">
+    <p>
+      <strong>Looking for birding hotspots?</strong> Try the
+      <a href="https://birdinghotspots.org/us/arkansas">Arkansas Birding Hotspots</a> website.
+    </p>
+  </div>
+
+  <h2>Site guides</h2>
+  <p>
+    Guides to birding locations around Northwest Arkansas, written by local birders. Each link
+    opens a PDF.
+  </p>
+  <ul class="topic-list">
+    {sorted.map((p) => <li><a href={`/documents/places-to-bird/${p.file}`}>{p.name}</a></li>)}
+  </ul>
+
+  <div class="photo-grid">
+    {
+      photos.map((p) => (
+        <figure>
+          <img src={`/images/places/${p.file}.jpg`} alt={p.caption} loading="lazy" />
+          <figcaption>{p.caption}</figcaption>
+        </figure>
+      ))
+    }
+  </div>
+
+  <h2>Join a field trip</h2>
+  <p>
+    NWAAS conducts field trips throughout the year. See <a href="/field-trips/">upcoming trips</a>.
+    The public is welcome. You do not have to be a member of NWAAS to join us.
+  </p>
+
+  <h2>Birding guides</h2>
+  <p>
+    The following individuals have offered their services as birding guides around Northwest
+    Arkansas. These services are not associated with NWAAS. Contact the individuals listed here
+    with questions, including costs. We will add more names as they become available.
+  </p>
+  <p>
+    A text or email before a phone call is helpful. If you call, leave a message. Many people do
+    not pick up calls from out of state unless they know what the call is about.
+  </p>
+  <ul>
+    {
+      guides.map((g) => (
+        <li>
+          <strong>{g.name}</strong>, {g.phone}, <a href={`mailto:${g.email}`}>{g.email}</a>
+        </li>
+      ))
+    }
+  </ul>
 </BaseLayout>

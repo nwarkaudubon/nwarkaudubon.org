@@ -313,8 +313,43 @@ address {
   margin: 0;
 }
 
-.trip-body img {
+.trip-body img,
+.prose img {
   max-width: 100%;
+  height: auto;
+}
+
+.topic-list {
+  padding-left: 1.25rem;
+}
+
+.topic-list li {
+  margin-bottom: 0.75rem;
+}
+
+.prose h2 {
+  margin-top: 2rem;
+}
+
+.prose figure {
+  margin: 1.5rem 0;
+}
+
+.prose figcaption,
+.photo-grid figcaption {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.photo-grid figure {
+  margin: 0;
 }
 
 /* ---------- Small screens ---------- */
