@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/*
+  Featured campaign. To change the campaign, edit `featured` below.
+  Set `featured = null` when there is no active campaign.
+*/
+const featured = {
+  title: 'Chimney Swift Tower at Mt. Sequoyah',
+};
+---
+
+<BaseLayout
+  title="Donate"
+  description="Support local conservation and environmental education with a tax-deductible gift to the Northwest Arkansas Audubon Society."
+>
+  <h1>Donate to NWAAS</h1>
+
+  <p>
+    The Northwest Arkansas Audubon Society supports a number of local conservation and
+    environmental education initiatives. Donations of any amount, at any time, will be put to
+    good use. Often we highlight specific causes we're raising money for below.
+  </p>
+
+  {
+    featured ? (
+      <section class="callout">
+        <p class="eyebrow">Featured fundraising project</p>
+        <h2>{featured.title}</h2>
+        <p>
+          The Northwest Arkansas Audubon Society is raising $5,000 to install a{' '}
+          <strong>Chimney Swift tower</strong> and an <strong>array of bird feeders</strong> at
+          Mt. Sequoyah in Fayetteville. The swift tower will be dedicated to the memory of{' '}
+          <strong>Dr. Doug James</strong>, longtime ornithology professor at the University of
+          Arkansas, whose goal of building a Chimney Swift tower was one of his priorities as
+          NWAAS president.
+        </p>
+        <p>
+          The tower will be designed and built by Kelly Mulhollan and architect Michael Cockram of
+          Bowerbird Designs &mdash; the team behind the Mulhollan Waterfowl Blind at Lake
+          Fayetteville. These towers mimic the mature hollow trees and old masonry chimneys that
+          swifts depend on for roosting and nesting. Research shows swifts readily adapt to
+          well-placed towers.
+        </p>
+        <p>
+          Alongside the tower, an array of feeders offering different types of food will be placed
+          in habitat suited to the birds and to those who enjoy watching them. Kelly and Donna
+          Mulhollan bring years of experience managing feeding stations and will oversee this part
+          of the project.
+        </p>
+        <p>
+          Mt. Sequoyah already offers exceptional bird habitat &mdash; the Center grounds, Skyline
+          Drive, and nearly 100 forested acres of Mt. Sequoyah Woods on the east slope. These NWAAS
+          projects, approved by Mt. Sequoyah Center, will add to those existing strengths and
+          provide rich educational opportunities for the community.
+        </p>
+        <p>
+          The $5,000 goal covers all project costs, including a contingency for unexpected expenses
+          and a full first year of bird feed.
+        </p>
+        <p>
+          Share this donation link to help us reach our goal:{' '}
+          <a href="https://bit.ly/swift-tower">https://bit.ly/swift-tower</a>
+        </p>
+      </section>
+    ) : (
+      <section class="callout">
+        <p>
+          There is no featured fundraising project at this time. You may make a general donation to
+          NWAAS using the instructions below.
+        </p>
+      </section>
+    )
+  }
+
+  <h2>How to donate</h2>
+
+  <h3>Online with PayPal</h3>
+  <form action="https://www.paypal.com/donate" method="post">
+    <input type="hidden" name="hosted_button_id" value="X44G7BBBJ5Q5A" />
+    <button type="submit" class="button">Donate with PayPal</button>
+  </form>
+
+  <h3>By check</h3>
+  <p>Mail a check payable to NWAAS to:</p>
+  <address>
+    Bill Beall, Treasurer<br />
+    2204 Hendricks Blvd<br />
+    Fort Smith, AR 72903-3422
+  </address>
+  <p>Please indicate the purpose of your donation in the memo line.</p>
+
+  <h3>Questions about donations?</h3>
+  <p>
+    Contact our Treasurer, Bill Beall, at
+    <a href="mailto:billtoka@mynewroads.com">billtoka@mynewroads.com</a> or 479-221-5171.
+  </p>
+
+  <p>
+    NWAAS is a registered 501(c)(3) nonprofit organization (EIN: 71-0519352). Your donations are
+    tax-deductible.
+  </p>
+</BaseLayout>

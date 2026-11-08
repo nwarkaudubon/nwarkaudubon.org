@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// TODO: confirm with the board that this list is current before launch.
+const board = [
+  { name: 'Robin Buff', role: 'President' },
+  { name: 'Taylor Long', role: 'Vice President' },
+  { name: 'Bill Beall', role: 'Treasurer' },
+  { name: 'Joe Neal', role: 'Secretary' },
+];
+
+const roles = [
+  { role: 'Recent Past Presidents', who: 'Joan Reynolds, Doug James, Michelle Viney, Pooja Panwar' },
+  { role: 'Facebook', who: 'Joan Reynolds' },
+  { role: 'Conservation', who: 'Joanie Patterson' },
+  { role: 'Website', who: 'Richard Stauffacher, Taylor Long' },
+  { role: 'Field Trips', who: 'Taylor Long' },
+  { role: 'Mulhollan Waterfowl Blind', who: 'Kenny and Donna Mulhollan' },
+];
+---
+
+<BaseLayout
+  title="About"
+  description="About the Northwest Arkansas Audubon Society: our mission, our board, and how to reach us."
+>
+  <h1>About NWAAS</h1>
+
+  <p class="lead">
+    The Northwest Arkansas Audubon Society is a registered non-profit organization serving
+    Benton, Carroll, Madison and Washington counties, committed to preserving the natural
+    world in Northwest Arkansas through education, environmental study and habitat protection.
+  </p>
+
+  <p>
+    We lead free field trips open to everyone, support local habitat and conservation projects,
+    and share what we learn about birds and the places they live. You don't need to be a member
+    to take part. See <a href="/field-trips/">upcoming field trips</a> or
+    <a href="/get-involved/">get involved</a>.
+  </p>
+
+  <h2>Board</h2>
+  <ul>
+    {board.map((b) => <li>{b.name}, <em>{b.role}</em></li>)}
+  </ul>
+
+  <h3>Roles and responsibilities</h3>
+  <ul>
+    {roles.map((r) => <li><strong>{r.role}:</strong> {r.who}</li>)}
+    <li>Elizabeth Adam, <em>friend of NWAAS</em></li>
+  </ul>
+
+  <h2>Governing documents</h2>
+  <p>
+    <a href="/documents/constitution-and-bylaws-2013.pdf">Constitution and By-Laws</a>
+    (PDF, adopted December 2013)
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions? See our <a href="/contact/">contact page</a> or email
+    <a href="mailto:info@nwarkaudubon.org">info@nwarkaudubon.org</a>.
+  </p>
+</BaseLayout>
