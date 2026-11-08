@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const resources = [
+  {
+    href: '/resources/learn-about-birds/',
+    title: 'Learn About Birds',
+    description: 'Ways to get started learning about the birds of Northwest Arkansas.',
+  },
+  {
+    href: '/resources/books/',
+    title: 'Books for Birders',
+    description: 'Free books about local birds by Joe Neal and David Chapman.',
+  },
+  {
+    href: '/resources/videos/',
+    title: 'Videos',
+    description: 'Bird programs recorded by NWAAS members.',
+  },
+  {
+    href: '/resources/links/',
+    title: 'Links',
+    description: 'Birding links, related organizations and other resources.',
+  },
+];
+---
+
+<BaseLayout title="Resources" description="Resources for learning about and enjoying birds in Northwest Arkansas.">
+  <h1>Resources</h1>
+  <p>Ways to learn more about birds and birding in Northwest Arkansas.</p>
+
+  <ul class="topic-list">
+    {
+      resources.map((r) => (
+        <li>
+          <a href={r.href}>{r.title}</a>
+          <br />
+          <span class="trip-meta">{r.description}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p>
+    Looking for places to go? See <a href="/places-to-bird/">Places to Bird</a>. For ways to help
+    birds at home, see <a href="/conservation/">Conservation</a>.
+  </p>
+</BaseLayout>

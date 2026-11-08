@@ -17,6 +17,8 @@ const roles = [
   { role: 'Field Trips', who: 'Taylor Long' },
   { role: 'Mulhollan Waterfowl Blind', who: 'Kenny and Donna Mulhollan' },
 ];
+// Note: the old site said "Kenny" here but "Kelly" everywhere else on the Mulhollan Blind
+// pages. TODO: confirm the name.
 ---
 
 <BaseLayout
@@ -48,6 +50,12 @@ const roles = [
     {roles.map((r) => <li><strong>{r.role}:</strong> {r.who}</li>)}
     <li>Elizabeth Adam, <em>friend of NWAAS</em></li>
   </ul>
+
+  <h2>History</h2>
+  <p>
+    Read about <a href="/about/history/">NWAAS history</a>, including early newsletters and a
+    tribute to Doug James.
+  </p>
 
   <h2>Governing documents</h2>
   <p>
