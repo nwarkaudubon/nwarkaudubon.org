@@ -260,8 +260,12 @@ main {
 }
 
 .callout ul {
-  margin-bottom: 0;
   padding-left: 1.25rem;
+}
+
+/* Keep the box snug around its content: no extra space after the last element. */
+.callout > :last-child {
+  margin-bottom: 0;
 }
 
 .archive-banner {
@@ -269,6 +273,32 @@ main {
   border-left: 5px solid var(--color-text-muted);
   padding: 0.75rem 1.25rem;
   margin: 0 0 1.5rem;
+}
+
+/* Standard, reusable text (weather plan, about our field trips). Quieter than the manila
+   call-outs so it reads as boilerplate, not as something specific to this trip. */
+.standard-info {
+  margin: 2.5rem 0 0;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.standard-info section + section {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.standard-info h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.standard-info p:last-child {
+  margin-bottom: 0;
 }
 
 .eyebrow {

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TripBadges from '../../components/TripBadges.astro';
+import StandardInfo from '../../components/StandardInfo.astro';
 import {
   getFieldTrips,
   getLeaderBioHtml,
@@ -39,6 +40,8 @@ const bios = leaderBios.filter((b) => b.html || b.email || b.phone);
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
 const open = !trip.isPast && !trip.isFull && trip.status === 'Announced';
 const full = !trip.isPast && trip.isFull;
+// Weather and "about" text only matter for trips that are still happening.
+const showStandardInfo = !trip.isPast && ['Announced', 'Full'].includes(trip.status);
 const left = open ? spotsLeft(trip) : null;
 const rsvpBody = encodeURIComponent('Name:\nNumber in party:\n');
 const mailto = (prefix: string) =>
@@ -150,4 +153,6 @@ const mailto = (prefix: string) =>
       </section>
     )
   }
+
+  {showStandardInfo && <StandardInfo />}
 </BaseLayout>

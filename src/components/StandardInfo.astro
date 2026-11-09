@@ -1,0 +1,32 @@
+---
+// A quiet box of standard text, visually distinct from the RSVP call-out.
+// Trip pages show both blocks; other pages can show just one.
+import AboutFieldTrips from './AboutFieldTrips.astro';
+import WeatherPlan from './WeatherPlan.astro';
+
+interface Props {
+  weather?: boolean;
+  about?: boolean;
+}
+
+const { weather = true, about = true } = Astro.props;
+---
+
+<aside class="standard-info">
+  {
+    weather && (
+      <section id="weather-plan">
+        <h2>Inclement weather plan</h2>
+        <WeatherPlan />
+      </section>
+    )
+  }
+  {
+    about && (
+      <section id="about-field-trips">
+        <h2>About our field trips</h2>
+        <AboutFieldTrips />
+      </section>
+    )
+  }
+</aside>
