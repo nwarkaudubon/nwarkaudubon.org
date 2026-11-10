@@ -18,6 +18,12 @@ const LEADERS_PROPERTY = 'Trip Leaders';
 export interface Leader {
   id: string;
   name: string;
+  /** From a URL column whose name contains "eBird" on the leader's page. */
+  ebirdUrl?: string;
+  /** From a Files column whose name contains "photo". Expires within the hour: build-time only. */
+  photoUrl?: string;
+  /** Our own square copy of the photo. Filled in for leaders of upcoming trips only. */
+  photo?: SavedImage | null;
 }
 
 export interface FieldTrip {
@@ -201,9 +207,13 @@ function getLeader(id: string): Promise<Leader | null> {
           const page = await notion(`/pages/${id}`);
           const title = Object.values<any>(page.properties).find((p) => p.type === 'title');
           const name = plain(title?.title).trim();
-          // Only the name is read. Leaders' email and phone stay off the public site on purpose:
+          // Only these are read. Leaders' email and phone stay off the public site on purpose:
           // people reach leaders through the trips email address.
-          return name ? { id, name } : null;
+          const props = Object.entries<any>(page.properties);
+          const ebirdUrl = props.find(([k, p]) => p.type === 'url' && /ebird/i.test(k))?.[1]?.url || undefined;
+          const file = props.find(([k, p]) => p.type === 'files' && /photo/i.test(k))?.[1]?.files?.[0];
+          const photoUrl: string | undefined = file?.[file?.type]?.url || undefined;
+          return name ? { id, name, ebirdUrl, photoUrl } : null;
         } catch (err) {
           console.warn(`[notion] Could not read trip leader ${id} (is that database shared with the connection?)`);
           return null;
@@ -369,6 +379,16 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
   for (const trip of trips) {
     if (trip.isPast || !trip.coverUrl) continue;
     trip.image = await saveImage(trip.coverUrl, { width: 1600, thumb: { width: 240, height: 180 } });
+  }
+
+  // Leader photos: copied onto our site for leaders of upcoming trips only (once per leader).
+  for (const trip of trips) {
+    if (trip.isPast) continue;
+    for (const leader of trip.leaders) {
+      if (leader.photoUrl && leader.photo === undefined) {
+        leader.photo = await saveImage(leader.photoUrl, { width: 240, thumb: { width: 240, height: 240 } });
+      }
+    }
   }
 
   // A series' repeating pattern, from the schedule table in its page.

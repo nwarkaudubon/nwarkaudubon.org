@@ -424,6 +424,31 @@ address {
   .trip-thumb img { width: 5.5rem; }
 }
 
+/* Trip leader bio: round photo beside the name and profile link; the bio starts below, flush left. */
+.leader {
+  margin-bottom: 1.5rem;
+}
+
+.leader-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.leader-head h3,
+.leader-head p {
+  margin: 0;
+}
+
+.leader-photo {
+  flex: none;
+  width: 5rem;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 /* Image inside a trip's page content (a map screenshot, say). */
 .trip-figure {
   margin: 1.5rem 0;

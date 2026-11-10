@@ -35,8 +35,10 @@ interface Props {
 }
 
 const { trip, bodyHtml, leaderBios } = Astro.props;
-// Show a leader's section if they have a bio.
-const bios = leaderBios.filter((b) => b.html);
+// Show a leader's section if they have a bio, an eBird link, or (upcoming trips) a photo.
+const photoOf = (b: Leader) => (trip.isPast ? null : b.photo?.thumbSrc ?? null);
+const ebirdOf = (b: Leader) => (b.ebirdUrl && /^https?:\/\//i.test(b.ebirdUrl) ? b.ebirdUrl : null);
+const bios = leaderBios.filter((b) => b.html || ebirdOf(b) || photoOf(b));
 // RSVP call-outs are for field trips only.
 const open = trip.kind === 'trip' && !trip.isPast && !trip.isFull && trip.status === 'Announced';
 const full = trip.kind === 'trip' && !trip.isPast && trip.isFull;
@@ -154,10 +156,16 @@ const mailto = (prefix: string) =>
       <section class="leader-bios">
         <h2>{bios.length === 1 ? 'About your trip leader' : 'About your trip leaders'}</h2>
         {bios.map((b) => (
-          <>
-            <h3>{b.name}</h3>
+          <div class="leader">
+            <div class="leader-head">
+              {photoOf(b) && <img class="leader-photo" src={photoOf(b)} width="240" height="240" alt="" loading="lazy" />}
+              <div>
+                <h3>{b.name}</h3>
+                {ebirdOf(b) && <p><a href={ebirdOf(b)}>eBird profile</a></p>}
+              </div>
+            </div>
             <div class="trip-body" set:html={b.html} />
-          </>
+          </div>
         ))}
       </section>
     )
