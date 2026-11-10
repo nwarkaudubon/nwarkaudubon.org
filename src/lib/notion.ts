@@ -1,7 +1,7 @@
 // Fetches field trips from the Notion database at build time.
 // Needs NOTION_TOKEN and NOTION_FIELD_TRIPS_DB_ID (see .env.example).
 
-import { renderBlocks, type Block } from './notion-blocks';
+import { renderBlocks, type Block, type Schedule, type ScheduleRow } from './notion-blocks';
 
 const NOTION_BASE = import.meta.env.NOTION_API_BASE ?? 'https://api.notion.com/v1';
 const NOTION_VERSION = '2022-06-28';
@@ -29,9 +29,11 @@ export interface FieldTrip {
   number: number | null;
   /**
    * From the Type column. "event" (fundraiser, convention, Christmas Bird Count...) has no RSVP,
-   * leaders, or standard field trip text. Blank or anything else counts as a field trip.
+   * leaders, or standard field trip text. "series" is a repeating set of informal outings: no
+   * RSVP, a different weather statement, and its schedule table comes from an inline database
+   * in the page. Blank or anything else counts as a field trip.
    */
-  kind: 'trip' | 'event';
+  kind: 'trip' | 'event' | 'series';
   slug: string;
   name: string;
   status: TripStatus;
@@ -56,6 +58,8 @@ export interface FieldTrip {
   leaderIds: string[];
   /** Leaders whose pages the site could read (filled in after the trips load). */
   leaders: Leader[];
+  /** For a series: "Each Wednesday, Friday, and Sunday at 7:00 AM." Built from its schedule table. */
+  pattern: string | null;
 }
 
 // ---------- API ----------
@@ -148,7 +152,8 @@ function pageToTrip(page: any): FieldTrip | null {
     console.warn(`[notion] "${name}" has no Unique ID, so its URL will change if the name or date changes.`);
   }
 
-  const kind = p.Type?.select?.name?.trim().toLowerCase() === 'event' ? 'event' : 'trip';
+  const typeName = p.Type?.select?.name?.trim().toLowerCase();
+  const kind: FieldTrip['kind'] = typeName === 'event' ? 'event' : typeName === 'series' ? 'series' : 'trip';
 
   return {
     id: page.id,
@@ -166,7 +171,7 @@ function pageToTrip(page: any): FieldTrip | null {
     checklistUrl: p.Checklist?.url ?? null,
     // The Participants column is attendance after the fact (internal), so the site ignores it.
     // Events have no RSVPs or leaders, even if those columns happen to be filled in.
-    limit: kind === 'event' ? null : (p['Participant limit']?.number ?? null),
+    limit: kind === 'trip' ? (p['Participant limit']?.number ?? null) : null,
     isPast: status === 'Completed' || datePassed,
     reserved: null,
     waitlist: null,
@@ -174,6 +179,7 @@ function pageToTrip(page: any): FieldTrip | null {
     leaderIds:
       kind === 'event' ? [] : (p[LEADERS_PROPERTY]?.relation ?? []).map((r: { id: string }) => r.id),
     leaders: [],
+    pattern: null,
   };
 }
 
@@ -266,6 +272,7 @@ async function loadRsvpTotals(tripsDbId: string): Promise<Map<string, RsvpTotals
       .join('&');
 
     const totals = new Map<string, RsvpTotals>();
+    let missingParty = 0;
     let cursor: string | undefined;
     do {
       const data = await notion(`/databases/${rsvpDbId}/query?${columns}`, {
@@ -277,7 +284,7 @@ async function loadRsvpTotals(tripsDbId: string): Promise<Map<string, RsvpTotals
         const label: string | undefined = props[RSVP_STATUS_PROPERTY]?.[status.type]?.name;
         if (!label || !wanted.includes(label)) continue;
         const size = props[RSVP_PARTY_PROPERTY]?.number;
-        if (size == null) console.warn('[notion] An RSVP has no "Number in party"; counting it as 1.');
+        if (size == null) missingParty++;
         for (const trip of props[relationName]?.relation ?? []) {
           const key = normId(trip.id);
           const t = totals.get(key) ?? { reserved: 0, waitlist: 0 };
@@ -288,6 +295,11 @@ async function loadRsvpTotals(tripsDbId: string): Promise<Map<string, RsvpTotals
       }
       cursor = data.has_more ? data.next_cursor : undefined;
     } while (cursor);
+
+    // One summary line instead of one per RSVP.
+    if (missingParty > 0) {
+      console.warn(`[notion] ${missingParty} Reserved/Waitlist RSVP(s) have no "Number in party"; counted as 1 each.`);
+    }
 
     return totals;
   } catch (err) {
@@ -351,10 +363,21 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
     trip.leaders = leaders;
   }
 
+  // A series' repeating pattern, from the schedule table in its page.
+  for (const trip of trips) {
+    if (trip.kind !== 'series') continue;
+    try {
+      const schedules = (await fetchBlocks(trip.id, true)).filter((b) => b.type === 'child_database' && b.schedule);
+      trip.pattern = describePattern(schedules.flatMap((b) => b.schedule!.rows));
+    } catch (err) {
+      console.warn(`[notion] Could not read the schedule of "${trip.name}": ${(err as Error).message}`);
+    }
+  }
+
   // RSVP totals and the derived "Full" state.
   const totals = await loadRsvpTotals(dbId);
   for (const trip of trips) {
-    if (trip.kind === 'event') continue; // events never fill up
+    if (trip.kind !== 'trip') continue; // events and series have no RSVPs, so never fill up
     if (totals) {
       const t = totals.get(normId(trip.id));
       trip.reserved = t?.reserved ?? 0;
@@ -374,12 +397,27 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
 export const getUpcomingTrips = async () => (await getFieldTrips()).filter((t) => !t.isPast);
 export const getPastTrips = async () => (await getFieldTrips()).filter((t) => t.isPast);
 
-/** Renders the body of a trip's Notion page to HTML. */
-export async function getTripBodyHtml(pageId: string): Promise<string> {
-  return renderBlocks(await fetchBlocks(pageId));
+/**
+ * Renders the body of a trip's Notion page to HTML. Inline databases in the page are read (as an
+ * outing schedule table) only when `schedules` is true, i.e. for a Series. On any other page
+ * they're ignored, so internal tables (planning notes, sign-ups) are never read or published.
+ */
+export async function getTripBodyHtml(pageId: string, schedules = false): Promise<string> {
+  return renderBlocks(await fetchBlocks(pageId, schedules));
 }
 
-async function fetchBlocks(blockId: string): Promise<Block[]> {
+// Cached, because a series' page body is read twice: once for its pattern (on the lists) and
+// once to render the page.
+const blocksCache = new Map<string, Promise<Block[]>>();
+const warnedDatabases = new Set<string>();
+
+function fetchBlocks(blockId: string, schedules = false): Promise<Block[]> {
+  const key = `${blockId}|${schedules}`;
+  if (!blocksCache.has(key)) blocksCache.set(key, loadBlocks(blockId, schedules));
+  return blocksCache.get(key)!;
+}
+
+async function loadBlocks(blockId: string, schedules: boolean): Promise<Block[]> {
   const blocks: Block[] = [];
   let cursor: string | undefined;
   do {
@@ -391,6 +429,21 @@ async function fetchBlocks(blockId: string): Promise<Block[]> {
   } while (cursor);
 
   for (const block of blocks) {
+    if (block.type === 'child_database') {
+      if (!schedules) continue;
+      try {
+        block.schedule = await loadSchedule(block.id);
+      } catch (err) {
+        if (!warnedDatabases.has(block.id)) {
+          warnedDatabases.add(block.id);
+          console.warn(
+            `[notion] Couldn't read an inline database on a series page (${block.id}). ` +
+              `Open it in Notion, then ••• > Connections > add the site's connection. (${(err as Error).message.slice(0, 120)})`,
+          );
+        }
+      }
+      continue;
+    }
     // Only list items have nested content we render. Other blocks with children
     // (linked databases, synced blocks, child pages) may point outside the shared
     // database, which Notion rejects with a 404.
@@ -405,6 +458,67 @@ async function fetchBlocks(blockId: string): Promise<Block[]> {
 }
 
 const RENDERED_NESTED_TYPES = new Set(['bulleted_list_item', 'numbered_list_item']);
+
+/**
+ * Reads an inline database in a trip page (a series' outing schedule). Columns are picked by
+ * type, so their names don't matter:
+ *   title -> outing name, date -> shown with the weekday, relation -> leader(s) (looked up on
+ *   the leader's own page), status/select -> status pill, url -> "View" (the checklist) and
+ *   "Join" (a column whose name contains "join"). Everything else (rollups, numbers like Participants, ...) is ignored.
+ */
+async function loadSchedule(databaseId: string): Promise<Schedule> {
+  const pages: any[] = [];
+  let cursor: string | undefined;
+  do {
+    const data = await notion(`/databases/${databaseId}/query`, {
+      method: 'POST',
+      body: JSON.stringify({ page_size: 100, ...(cursor ? { start_cursor: cursor } : {}) }),
+    });
+    pages.push(...data.results);
+    cursor = data.has_more ? data.next_cursor : undefined;
+  } while (cursor);
+
+  const rows: ScheduleRow[] = [];
+
+  for (const page of pages) {
+    const entries = Object.entries<any>(page.properties);
+    const first = (type: string | string[]) =>
+      entries.find(([, p]) => (Array.isArray(type) ? type : [type]).includes(p.type))?.[1];
+
+    const title = plain(first('title')?.title).trim();
+    const date = first('date')?.date;
+    if (!title || !date?.start) continue; // needs a name and a date
+
+    const leaders: Leader[] = [];
+    for (const rel of first('relation')?.relation ?? []) {
+      const leader = await getLeader(rel.id);
+      if (leader) leaders.push(leader);
+    }
+
+    // URL columns: one whose name contains "join" is the share link; the other is the checklist.
+    let checklistUrl: string | undefined;
+    let joinUrl: string | undefined;
+    for (const [label, p] of entries) {
+      if (p.type !== 'url' || !p.url) continue;
+      if (/join/i.test(label)) joinUrl = p.url;
+      else checklistUrl ??= p.url;
+    }
+
+    const status = first(['status', 'select']);
+    rows.push({
+      title,
+      start: date.start,
+      when: formatOutingDate(date.start),
+      leaders,
+      status: (status?.status ?? status?.select)?.name ?? '',
+      checklistUrl,
+      joinUrl,
+    });
+  }
+
+  rows.sort((a, b) => a.start.localeCompare(b.start));
+  return { rows };
+}
 
 // ---------- Display helpers ----------
 
@@ -432,6 +546,28 @@ export function formatTripDate(trip: Pick<FieldTrip, 'start' | 'end'>): string {
     return `${fmtDay(start, full)}${time}`;
   }
   return `${fmtDay(start, { ...full, year: undefined })} – ${fmtDay(end, full)}`;
+}
+
+/**
+ * "Each Wednesday, Friday, and Sunday at 7:00 AM." Days are listed Monday first, so a weekend
+ * day comes last. The time is included only if every outing starts at the same time.
+ * Returns null with fewer than two outings (nothing repeats).
+ */
+export function describePattern(rows: { start: string }[]): string | null {
+  if (rows.length < 2) return null;
+  const order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const days = [...new Set(rows.map((r) => fmtDay(r.start, { weekday: 'long' })))].sort(
+    (a, b) => order.indexOf(a) - order.indexOf(b),
+  );
+  const times = new Set(rows.map((r) => (r.start.length > 10 ? fmtTime(r.start) : '')));
+  const [time] = times.size === 1 ? times : [''];
+  return `Each ${formatNames(days)}${time ? ` at ${time}` : ''}.`;
+}
+
+/** "Wednesday, October 21 at 7:00 AM": the weekday is how people recognize a series outing. */
+export function formatOutingDate(start: string): string {
+  const day = fmtDay(start, { weekday: 'long', month: 'long', day: 'numeric' });
+  return start.length > 10 ? `${day} at ${fmtTime(start)}` : day;
 }
 
 /** "Alex", "Alex and Sam", "Alex, Sam, and Jo" */

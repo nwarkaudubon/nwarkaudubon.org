@@ -1,6 +1,11 @@
 ---
 // Standard text about our field trips. Edit it here and it updates everywhere it's used
 // (home page, field trips page, and the bottom of each trip page).
+// A "series" of informal outings skips the line about weekend trips.
+interface Props {
+  series?: boolean;
+}
+const { series = false } = Astro.props;
 ---
 
 <p>
@@ -8,7 +13,13 @@
   Membership is not required, though new members are always welcome. We try to make every trip
   accessible to all ages, abilities and interests, and beginning birders are always welcome.
 </p>
-<p>
-  Trips are held on Saturdays and Sundays to fit different schedules. We encourage carpooling
-  where possible. No pets, please.
-</p>
+{
+  series ? (
+    <p>We encourage carpooling where possible. No pets, please.</p>
+  ) : (
+    <p>
+      Trips are held on Saturdays and Sundays to fit different schedules. We encourage carpooling
+      where possible. No pets, please.
+    </p>
+  )
+}

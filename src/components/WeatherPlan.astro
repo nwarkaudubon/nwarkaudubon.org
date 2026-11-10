@@ -1,9 +1,25 @@
 ---
 // Standard inclement weather text. Edit it here and it updates on every trip page.
+// A "series" of informal outings has its own wording: no cancellation emails.
+interface Props {
+  series?: boolean;
+}
+const { series = false } = Astro.props;
 ---
 
-<p>
-  When the weather is bad for people, it's usually bad for birds too. If the forecast is
-  dangerous or unsuitable for birding, we'll cancel the trip at least 12 hours in advance. We'll
-  email everyone who has RSVPed and post the cancellation on the trip's page on this website.
-</p>
+{
+  series ? (
+    <p>
+      When the weather is bad for people, it's usually bad for birds too. Because these outings
+      are informal, we won't email participants if one is canceled. Any cancellation will be
+      posted on this page only, so check back before you head out, and use your best judgment
+      about whether to go.
+    </p>
+  ) : (
+    <p>
+      When the weather is bad for people, it's usually bad for birds too. If the forecast is
+      dangerous or unsuitable for birding, we'll cancel the trip at least 12 hours in advance. We'll
+      email everyone who has RSVPed and post the cancellation on the trip's page on this website.
+    </p>
+  )
+}

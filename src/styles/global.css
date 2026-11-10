@@ -449,6 +449,122 @@ address {
   height: auto;
 }
 
+/* Outing schedule for a series (from the inline database in the trip's Notion page). */
+.schedule {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 1rem;
+}
+
+.schedule th,
+.schedule td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.6rem 0.75rem 0.6rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.schedule thead th {
+  border-bottom: 2px solid var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.schedule tbody th {
+  font-weight: 400;
+}
+
+/* Outing status pills (Notion's Select values). Text always carries the meaning; fill/outline
+   just helps scanning: dark = done, light = on, hollow = needs attention, brick = canceled. */
+.badge-completed {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.badge-confirmed {
+  background: var(--color-manila);
+}
+
+.badge-need-leader,
+.badge-needs-leader {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  border-style: dashed;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.badge-cancelled {
+  background: #ecdad4;
+  border-color: #b4574a;
+  color: #6b2a20;
+}
+
+.schedule .badge {
+  margin-left: 0;
+}
+
+.schedule-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+/* Quiet, outlined button: smaller and hollow so it doesn't compete with the page.
+   Still ~44px tall for easy tapping (padding plus line height). */
+.button-small {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+
+.button-small:hover {
+  background: var(--color-manila);
+  color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+/* Small screens: each outing becomes its own block, with the column name as a caption. */
+@media (max-width: 40rem) {
+  .schedule,
+  .schedule tbody,
+  .schedule tr,
+  .schedule th,
+  .schedule td {
+    display: block;
+  }
+
+  .schedule thead {
+    position: absolute;
+    left: -999px; /* hidden visually, still read by screen readers */
+  }
+
+  .schedule tr {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .schedule th,
+  .schedule td {
+    border: 0;
+    padding: 0.15rem 0;
+  }
+
+  .schedule td:empty {
+    display: none;
+  }
+
+  .schedule td::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+  }
+}
+
 .topic-list {
   padding-left: 1.25rem;
 }

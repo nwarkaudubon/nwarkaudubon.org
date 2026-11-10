@@ -18,7 +18,7 @@ export async function getStaticPaths() {
   const paths = [];
   // Sequential on purpose: Notion limits requests to about 3 per second.
   for (const trip of trips) {
-    const bodyHtml = await getTripBodyHtml(trip.id);
+    const bodyHtml = await getTripBodyHtml(trip.id, trip.kind === 'series');
     const leaderBios = [];
     for (const leader of trip.leaders) {
       leaderBios.push({ ...leader, html: await getLeaderBioHtml(leader.id) });
@@ -43,7 +43,9 @@ const open = trip.kind === 'trip' && !trip.isPast && !trip.isFull && trip.status
 const full = trip.kind === 'trip' && !trip.isPast && trip.isFull;
 // Weather and "about" text only matter for trips that are still happening.
 // Events (fundraisers, conventions, etc.) don't get it.
-const showStandardInfo = trip.kind === 'trip' && !trip.isPast && ['Announced', 'Full'].includes(trip.status);
+const showStandardInfo = trip.kind !== 'event' && !trip.isPast && ['Announced', 'Full'].includes(trip.status);
+// A series is drop-in: it says so instead of asking for RSVPs.
+const dropIn = trip.kind === 'series' && !trip.isPast && trip.status === 'Announced';
 const left = open ? spotsLeft(trip) : null;
 const rsvpBody = encodeURIComponent('Name:\nNumber in party:\n');
 const mailto = (prefix: string) =>
@@ -60,7 +62,10 @@ const mailto = (prefix: string) =>
 
   <dl class="trip-details">
     <dt>When</dt>
-    <dd>{formatTripDate(trip)}</dd>
+    <dd>
+      {formatTripDate(trip)}
+      {trip.pattern && <><br />{trip.pattern}</>}
+    </dd>
     {
       trip.leaders.length > 0 && (
         <>
@@ -117,6 +122,16 @@ const mailto = (prefix: string) =>
     )
   }
   {
+    dropIn && (
+      <div class="callout">
+        <p>
+          <strong>No RSVP needed.</strong> Just join us at the start time for any outing that
+          works for you.
+        </p>
+      </div>
+    )
+  }
+  {
     full && (
       <div class="callout">
         <p>
@@ -156,5 +171,5 @@ const mailto = (prefix: string) =>
     )
   }
 
-  {showStandardInfo && <StandardInfo />}
+  {showStandardInfo && <StandardInfo series={trip.kind === 'series'} />}
 </BaseLayout>

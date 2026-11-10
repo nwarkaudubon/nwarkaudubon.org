@@ -52,6 +52,73 @@ function renderRichText(items: RichText[] = []): string {
 
 const text = (block: Block) => renderRichText(block[block.type]?.rich_text);
 
+/** One row of an inline database (a series' outing schedule), already resolved to plain data. */
+export interface ScheduleRow {
+  title: string;
+  /** Notion date string from the Date column, e.g. "2026-10-21T07:00:00.000-05:00". */
+  start: string;
+  /** e.g. "Wednesday, October 21 at 7:00 AM" (built from the Date column). */
+  when: string;
+  leaders: { name: string }[];
+  status: string;
+  /** The day's eBird checklist. */
+  checklistUrl?: string;
+  /** Sharing link that copies the checklist into the visitor's own eBird account. */
+  joinUrl?: string;
+}
+
+export interface Schedule {
+  rows: ScheduleRow[];
+}
+
+/**
+ * The outing schedule as a table. On narrow screens CSS stacks each row into a card, using the
+ * data-label attributes as captions.
+ */
+function renderSchedule(s: Schedule): string {
+  const hasLeaders = s.rows.some((r) => r.leaders.length > 0);
+  const hasStatus = s.rows.some((r) => r.status);
+  const hasLinks = s.rows.some((r) => safeHref(r.checklistUrl ?? null) || safeHref(r.joinUrl ?? null));
+  const head =
+    '<th scope="col">Outing</th>' +
+    (hasLeaders ? '<th scope="col">Leader</th>' : '') +
+    (hasStatus ? '<th scope="col">Status</th>' : '') +
+    (hasLinks ? '<th scope="col">eBird Checklist</th>' : '');
+
+  const body = s.rows
+    .map((r) => {
+      // Names only: contact info is in the trip leaders' section at the bottom of the page.
+      const leaders = r.leaders.map((l) => escapeHtml(l.name)).join('<br />');
+      const status = r.status
+        ? `<span class="badge badge-${escapeHtml(r.status.toLowerCase().replace(/[^a-z]+/g, '-'))}">${escapeHtml(r.status)}</span>`
+        : '';
+      // "View" opens the day's checklist; "Join" is a share link that copies it into the
+      // visitor's own eBird account. Full descriptions are for screen readers.
+      const view = safeHref(r.checklistUrl ?? null);
+      const join = safeHref(r.joinUrl ?? null);
+      const title = escapeHtml(r.title);
+      const links = hasLinks
+        ? `<td data-label="eBird Checklist">${
+            view || join
+              ? '<span class="schedule-links">' +
+                (view ? `<a href="${escapeHtml(view)}" aria-label="View the eBird checklist for ${title}">View</a>` : '') +
+                (join ? `<a class="button button-small" href="${escapeHtml(join)}" aria-label="Join the eBird checklist for ${title}">Join</a>` : '') +
+                '</span>'
+              : ''
+          }</td>`
+        : '';
+      return (
+        `<tr><th scope="row"><strong>${escapeHtml(r.title)}</strong><br />${escapeHtml(r.when)}</th>` +
+        (hasLeaders ? `<td data-label="Leader">${leaders}</td>` : '') +
+        (hasStatus ? `<td data-label="Status">${status}</td>` : '') +
+        `${links}</tr>`
+      );
+    })
+    .join('');
+
+  return `<table class="schedule"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
 export function renderBlocks(blocks: Block[]): string {
   let html = '';
   let i = 0;
@@ -106,6 +173,10 @@ export function renderBlocks(blocks: Block[]): string {
         if (url) html += `<p><a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`;
         break;
       }
+      case 'child_database':
+        // An inline database in the page (a series' outing schedule); see loadSchedule().
+        if (block.schedule?.rows.length) html += renderSchedule(block.schedule);
+        break;
       default:
         // Unsupported block type (image, table, embed, ...): skipped.
         break;
