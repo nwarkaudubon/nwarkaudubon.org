@@ -1,0 +1,55 @@
+---
+/*
+  Fallback banner: a full-width, fixed-height row (a collage) of every image in
+  src/assets/banner/. The order is reshuffled in the browser on every page load.
+
+  To add a photo: drop a .jpg/.jpeg/.png/.webp into src/assets/banner/ and rebuild.
+  To remove one: delete the file. Any size works; each is resized at build time to a small
+  WebP. Wide or square photos both work (they're shown at the banner's height, uncropped).
+  Photos are decorative here (no alt text); put anything that matters in the page text.
+*/
+import { getImage } from 'astro:assets';
+
+const modules = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/banner/*.{jpg,jpeg,png,webp}',
+  { eager: true },
+);
+
+// Rendered at 11rem (176px) tall; 2x that keeps them sharp on high-density screens.
+const images = await Promise.all(
+  Object.entries(modules)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(async ([, mod]) => {
+      const img = await getImage({ src: mod.default, height: 360, format: 'webp', quality: 70 });
+      return { src: img.src, width: img.attributes.width, height: img.attributes.height };
+    }),
+);
+---
+
+{
+  images.length > 0 && (
+    <>
+      <div class="banner" id="banner" aria-hidden="true">
+        {images.map((img) => (
+          <img src={img.src} width={img.width} height={img.height} alt="" loading="lazy" decoding="async" />
+        ))}
+      </div>
+      {/* Inline (not bundled) so it runs right after the banner is parsed, before first paint. */}
+      <script is:inline>
+        (function () {
+          var row = document.getElementById('banner');
+          if (!row) return;
+          var items = Array.prototype.slice.call(row.children);
+          for (var i = items.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = items[i]; items[i] = items[j]; items[j] = t;
+          }
+          items.forEach(function (el, n) {
+            if (n < 8) el.loading = 'eager'; // the ones most likely on screen
+            row.appendChild(el);
+          });
+        })();
+      </script>
+    </>
+  )
+}

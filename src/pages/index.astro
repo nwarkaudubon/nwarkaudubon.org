@@ -7,15 +7,6 @@ const upcoming = await getUpcomingTrips();
 ---
 
 <BaseLayout>
-  <div class="hero">
-    <img
-      src="/images/home.jpg"
-      alt="Birders with binoculars and spotting scopes on a paved trail."
-      width="733"
-      height="379"
-    />
-  </div>
-
   <h1>Northwest Arkansas Audubon Society</h1>
   <p class="lead">
     The Northwest Arkansas Audubon Society is a registered non-profit organization serving
@@ -40,7 +31,7 @@ const upcoming = await getUpcomingTrips();
     <h2>Upcoming Field Trips &amp; Events</h2>
     <p>
       Our field trips are free and open to everyone, and beginning birders are always welcome.
-      Questions? Email <a href="mailto:trips@nwarkaudubon.org">trips@nwarkaudubon.org</a>.
+      Join our field trip email list, or ask a question: <a href="mailto:trips@nwarkaudubon.org">trips@nwarkaudubon.org</a>.
     </p>
     {
       upcoming.length > 0 ? (

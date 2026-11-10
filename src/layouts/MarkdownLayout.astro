@@ -1,12 +1,19 @@
 ---
 // Layout for standalone Markdown pages in src/pages/**/*.md.
-// Frontmatter: layout (this file), title, description.
+// Frontmatter: layout (this file), title, description, and optionally
+// image, imageAlt, imageCredit (featured image; see BaseLayout).
 import BaseLayout from './BaseLayout.astro';
 
 const { frontmatter } = Astro.props;
 ---
 
-<BaseLayout title={frontmatter.title} description={frontmatter.description}>
+<BaseLayout
+  title={frontmatter.title}
+  description={frontmatter.description}
+  image={frontmatter.image}
+  imageAlt={frontmatter.imageAlt}
+  imageCredit={frontmatter.imageCredit}
+>
   <h1>{frontmatter.title}</h1>
   <div class="prose">
     <slot />

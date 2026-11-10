@@ -19,6 +19,10 @@ const conservation = defineCollection({
     description: z.string(),
     order: z.number().default(100),
     externalUrl: z.string().url().optional(),
+    // Optional featured image (a file in public/, e.g. /images/conservation/x.jpg)
+    image: z.string().optional(),
+    imageAlt: z.string().default(''),
+    imageCredit: z.string().optional(),
   }),
 });
 

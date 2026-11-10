@@ -8,9 +8,11 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "notion:schema": "node --env-file=.env scripts/notion-schema.mjs"
+    "notion:schema": "node --env-file=.env scripts/notion-schema.mjs",
+    "images:resize": "node scripts/resize-images.mjs"
   },
   "dependencies": {
-    "astro": "^7.4.7"
+    "astro": "^7.4.7",
+    "sharp": "^0.35.4"
   }
 }
