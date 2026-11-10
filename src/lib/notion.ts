@@ -25,6 +25,8 @@ export interface Leader {
 
 export interface FieldTrip {
   id: string;
+  /** Notion's Unique ID number for the trip (permanent), or null if the column is missing. */
+  number: number | null;
   slug: string;
   name: string;
   status: TripStatus;
@@ -90,6 +92,17 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+/**
+ * The page address for a trip, e.g. "t42-winter-waterfowl-2026-12-05".
+ * The "t42" part is permanent. The rest follows the current name and date and may change; the
+ * build writes redirects (see idPrefix and src/pages/trip-redirects.txt.ts) so old links work.
+ */
+const tripSlug = (number: number | null, name: string, start: string) =>
+  `${number === null ? '' : `${idPrefix(number)}-`}${slugify(name)}-${start.slice(0, 10)}`;
+
+/** The permanent part of a trip's address, e.g. "t42". */
+export const idPrefix = (number: number) => `t${number}`;
+
 /** Builds a Google Maps link from "lat, lng" text. Returns null if it isn't valid coordinates. */
 export function googleMapsUrl(coordinates: string): string | null {
   const m = coordinates.match(/(-?\d{1,3}(?:\.\d+)?)\s*[,\s]\s*(-?\d{1,3}(?:\.\d+)?)/);
@@ -122,9 +135,18 @@ function pageToTrip(page: any): FieldTrip | null {
   const lastDay = (end ?? start).slice(0, 10);
   const datePassed = lastDay < todayLocal();
 
+  // The database's Unique ID column (Notion numbers each row once, and never changes it).
+  // It makes the page address permanent: see tripSlug().
+  const uniqueId = Object.values<any>(p).find((prop) => prop.type === 'unique_id')?.unique_id;
+  const number: number | null = uniqueId?.number ?? null;
+  if (number === null) {
+    console.warn(`[notion] "${name}" has no Unique ID, so its URL will change if the name or date changes.`);
+  }
+
   return {
     id: page.id,
-    slug: `${slugify(name)}-${start.slice(0, 10)}`,
+    number,
+    slug: tripSlug(number, name, start),
     name,
     status,
     start,
