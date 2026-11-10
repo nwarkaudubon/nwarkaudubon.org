@@ -7,8 +7,8 @@ const upcoming = await getUpcomingTrips();
 const past = await getPastTrips();
 ---
 
-<BaseLayout title="Field Trips">
-  <h1>Field Trips</h1>
+<BaseLayout title="Field Trips & Events">
+  <h1>Field Trips &amp; Events</h1>
   <p>
     Our field trips are free and open to everyone, and beginning birders are always welcome.
     Join our field trip email list, or ask a question: <a href="mailto:trips@nwarkaudubon.org">trips@nwarkaudubon.org</a>.
@@ -19,10 +19,10 @@ const past = await getPastTrips();
     upcoming.length > 0 ? (
       <FieldTripList trips={upcoming} />
     ) : (
-      <p>No field trips are announced right now. Check back soon!</p>
+      <p>No field trips or events are announced right now. Check back soon!</p>
     )
   }
 
-  <h2>Past field trips</h2>
-  {past.length > 0 ? <FieldTripList trips={past} /> : <p>No past field trips yet.</p>}
+  <h2>Past field trips &amp; events</h2>
+  {past.length > 0 ? <FieldTripList trips={past} /> : <p>Nothing here yet.</p>}
 </BaseLayout>

@@ -417,6 +417,13 @@ address {
   color: #ffffff;
 }
 
+/* "Event" (not a field trip): outlined, so it reads as a label rather than a status. */
+.badge-event {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
 .badge-canceled {
   background: #ecdad4;
 }

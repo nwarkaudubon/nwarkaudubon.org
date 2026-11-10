@@ -22,5 +22,6 @@ const statusPill = !upcoming
 const limitPill = upcoming && !trip.isFull && trip.status === 'Announced' && trip.limit != null ? trip.limit : null;
 ---
 
-{statusPill && <span class={`badge badge-${statusPill.toLowerCase()}`}>{statusPill}</span>}
+{trip.kind === 'event' && <span class="badge badge-event">Event</span>}
+{statusPill &&<span class={`badge badge-${statusPill.toLowerCase()}`}>{statusPill}</span>}
 {limitPill !== null && <span class="badge badge-limit">Limited to {limitPill}</span>}

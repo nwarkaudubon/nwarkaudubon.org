@@ -38,10 +38,12 @@ const { trip, bodyHtml, leaderBios } = Astro.props;
 // Show a leader's section if they have a bio or contact info.
 const bios = leaderBios.filter((b) => b.html || b.email || b.phone);
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
-const open = !trip.isPast && !trip.isFull && trip.status === 'Announced';
-const full = !trip.isPast && trip.isFull;
+// RSVP call-outs are for field trips only.
+const open = trip.kind === 'trip' && !trip.isPast && !trip.isFull && trip.status === 'Announced';
+const full = trip.kind === 'trip' && !trip.isPast && trip.isFull;
 // Weather and "about" text only matter for trips that are still happening.
-const showStandardInfo = !trip.isPast && ['Announced', 'Full'].includes(trip.status);
+// Events (fundraisers, conventions, etc.) don't get it.
+const showStandardInfo = trip.kind === 'trip' && !trip.isPast && ['Announced', 'Full'].includes(trip.status);
 const left = open ? spotsLeft(trip) : null;
 const rsvpBody = encodeURIComponent('Name:\nNumber in party:\n');
 const mailto = (prefix: string) =>
@@ -49,7 +51,7 @@ const mailto = (prefix: string) =>
 ---
 
 <BaseLayout title={trip.name}>
-  <p><a href="/field-trips/">&larr; All field trips</a></p>
+  <p><a href="/field-trips/">&larr; All field trips &amp; events</a></p>
 
   <h1>
     {trip.name}

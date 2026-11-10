@@ -27,6 +27,11 @@ export interface FieldTrip {
   id: string;
   /** Notion's Unique ID number for the trip (permanent), or null if the column is missing. */
   number: number | null;
+  /**
+   * From the Type column. "event" (fundraiser, convention, Christmas Bird Count...) has no RSVP,
+   * leaders, or standard field trip text. Blank or anything else counts as a field trip.
+   */
+  kind: 'trip' | 'event';
   slug: string;
   name: string;
   status: TripStatus;
@@ -143,9 +148,12 @@ function pageToTrip(page: any): FieldTrip | null {
     console.warn(`[notion] "${name}" has no Unique ID, so its URL will change if the name or date changes.`);
   }
 
+  const kind = p.Type?.select?.name?.trim().toLowerCase() === 'event' ? 'event' : 'trip';
+
   return {
     id: page.id,
     number,
+    kind,
     slug: tripSlug(number, name, start),
     name,
     status,
@@ -157,12 +165,14 @@ function pageToTrip(page: any): FieldTrip | null {
     mapUrl: googleMapsUrl(coordinates),
     checklistUrl: p.Checklist?.url ?? null,
     // The Participants column is attendance after the fact (internal), so the site ignores it.
-    limit: p['Participant limit']?.number ?? null,
+    // Events have no RSVPs or leaders, even if those columns happen to be filled in.
+    limit: kind === 'event' ? null : (p['Participant limit']?.number ?? null),
     isPast: status === 'Completed' || datePassed,
     reserved: null,
     waitlist: null,
     isFull: false,
-    leaderIds: (p[LEADERS_PROPERTY]?.relation ?? []).map((r: { id: string }) => r.id),
+    leaderIds:
+      kind === 'event' ? [] : (p[LEADERS_PROPERTY]?.relation ?? []).map((r: { id: string }) => r.id),
     leaders: [],
   };
 }
@@ -344,6 +354,7 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
   // RSVP totals and the derived "Full" state.
   const totals = await loadRsvpTotals(dbId);
   for (const trip of trips) {
+    if (trip.kind === 'event') continue; // events never fill up
     if (totals) {
       const t = totals.get(normId(trip.id));
       trip.reserved = t?.reserved ?? 0;
