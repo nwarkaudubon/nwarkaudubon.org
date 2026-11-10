@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BannerCollage from '../components/BannerCollage.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -8,6 +9,14 @@ interface Props {
   description?: string;
   /** Ask search engines not to list this page (used for archived content). */
   noindex?: boolean;
+  /** Featured image shown at the top of the page, e.g. "/images/places/x.jpg" (a file in public/). */
+  image?: string;
+  /** Alt text for the featured image (required when `image` is set; describe what's in the photo). */
+  imageAlt?: string;
+  /** Optional photo credit shown under the featured image. */
+  imageCredit?: string;
+  /** Pages without a featured image show the random banner. Set false to show neither. */
+  banner?: boolean;
 }
 
 const siteName = 'Northwest Arkansas Audubon Society';
@@ -15,6 +24,10 @@ const {
   title,
   description = 'A Northwest Arkansas community non-profit committed to preserving the natural world through education, environmental study, and habitat protection.',
   noindex = false,
+  image,
+  imageAlt = '',
+  imageCredit,
+  banner = true,
 } = Astro.props;
 
 const fullTitle = title ? `${title} | ${siteName}` : siteName;
@@ -31,7 +44,14 @@ const fullTitle = title ? `${title} | ${siteName}` : siteName;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link
       rel="preload"
-      href="/fonts/source-serif-4-latin-wght-normal.woff2"
+      href="/fonts/inter-latin-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/libre-baskerville-latin-wght-normal.woff2"
       as="font"
       type="font/woff2"
       crossorigin
@@ -40,8 +60,17 @@ const fullTitle = title ? `${title} | ${siteName}` : siteName;
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <Header />
+    {!image && banner && <BannerCollage />}
     <main id="main">
       <div class="wrapper">
+        {
+          image && (
+            <figure class="featured-image">
+              <img src={image} alt={imageAlt} />
+              {imageCredit && <figcaption>{imageCredit}</figcaption>}
+            </figure>
+          )
+        }
         <slot />
       </div>
     </main>
