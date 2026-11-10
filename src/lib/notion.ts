@@ -18,10 +18,6 @@ const LEADERS_PROPERTY = 'Trip Leaders';
 export interface Leader {
   id: string;
   name: string;
-  /** From the first Email column on the leader's page, if any. Published on purpose. */
-  email?: string;
-  /** From the first Phone column on the leader's page, if any. Published on purpose. */
-  phone?: string;
 }
 
 export interface FieldTrip {
@@ -205,10 +201,9 @@ function getLeader(id: string): Promise<Leader | null> {
           const page = await notion(`/pages/${id}`);
           const title = Object.values<any>(page.properties).find((p) => p.type === 'title');
           const name = plain(title?.title).trim();
-          // Leaders choose to share their contact info so participants can reach them.
-          const email = Object.values<any>(page.properties).find((p) => p.type === 'email')?.email;
-          const phone = Object.values<any>(page.properties).find((p) => p.type === 'phone_number')?.phone_number;
-          return name ? { id, name, email: email || undefined, phone: phone || undefined } : null;
+          // Only the name is read. Leaders' email and phone stay off the public site on purpose:
+          // people reach leaders through the trips email address.
+          return name ? { id, name } : null;
         } catch (err) {
           console.warn(`[notion] Could not read trip leader ${id} (is that database shared with the connection?)`);
           return null;
