@@ -1,6 +1,7 @@
 // Renders Notion page content (blocks) to HTML.
-// Supports the common text blocks. Anything else is skipped (images are skipped
-// on purpose: Notion image URLs expire after an hour, so they would break).
+// Supports the common text blocks. Anything else is skipped. Images render only if they were
+// copied onto our site beforehand (block.saved): Notion image URLs expire after an hour, so
+// linking to them directly would break.
 
 type RichText = {
   plain_text: string;
@@ -171,6 +172,20 @@ export function renderBlocks(blocks: Block[]): string {
       case 'link_preview': {
         const url = safeHref(block[block.type]?.url);
         if (url) html += `<p><a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>`;
+        break;
+      }
+      case 'image': {
+        // Only images we copied onto our own site (upcoming trips); see notion-images.ts.
+        const img = block.saved;
+        if (!img) break;
+        const alt = escapeHtml((block.image?.caption ?? []).map((t: RichText) => t.plain_text).join('').trim());
+        const caption = renderRichText(block.image?.caption);
+        const tag = `<img src="${escapeHtml(img.src)}" width="${img.width}" height="${img.height}" alt="${alt}" loading="lazy" />`;
+        // Tap to see the larger version: map screenshots are often hard to read at page width.
+        const picture = img.fullSrc
+          ? `<a href="${escapeHtml(img.fullSrc)}" aria-label="View larger image${alt ? `: ${alt}` : ''}">${tag}</a>`
+          : tag;
+        html += `<figure class="trip-figure">${picture}${caption ? `<figcaption>${caption}</figcaption>` : ''}</figure>`;
         break;
       }
       case 'child_database':

@@ -276,11 +276,14 @@ main {
   margin: -2rem calc(var(--space) * -1) 1.5rem;
 }
 
+/* Fills the column width, in a frame that's short on phones and a bit taller on wide screens.
+   The photo is cropped to the frame, centered. */
 .featured-image img {
   display: block;
   width: 100%;
-  max-height: 22rem;
+  height: clamp(9rem, 26vw, 18rem);
   object-fit: cover;
+  object-position: center;
 }
 
 .featured-image figcaption {
@@ -385,6 +388,53 @@ address {
   border-top: 1px solid var(--color-border);
   padding-top: 0.5rem;
   margin-top: 1.5rem;
+}
+
+/* Small 4:3 thumbnail beside upcoming trips that have a cover image. */
+.field-trip.has-thumb {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.trip-thumb {
+  flex: none;
+  margin-top: 0.5rem;
+}
+
+.trip-thumb img {
+  display: block;
+  width: 7.5rem;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.trip-text {
+  min-width: 0;
+}
+
+@media (max-width: 40rem) {
+  .trip-thumb img { width: 5.5rem; }
+}
+
+/* Image inside a trip's page content (a map screenshot, say). */
+.trip-figure {
+  margin: 1.5rem 0;
+}
+
+.trip-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-border);
+}
+
+.trip-figure figcaption {
+  margin-top: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
 }
 
 .field-trip h3 {

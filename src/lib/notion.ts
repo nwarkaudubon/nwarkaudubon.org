@@ -2,6 +2,7 @@
 // Needs NOTION_TOKEN and NOTION_FIELD_TRIPS_DB_ID (see .env.example).
 
 import { renderBlocks, type Block, type Schedule, type ScheduleRow } from './notion-blocks';
+import { saveImage, type SavedImage } from './notion-images';
 
 const NOTION_BASE = import.meta.env.NOTION_API_BASE ?? 'https://api.notion.com/v1';
 const NOTION_VERSION = '2022-06-28';
@@ -60,6 +61,10 @@ export interface FieldTrip {
   leaders: Leader[];
   /** For a series: "Each Wednesday, Friday, and Sunday at 7:00 AM." Built from its schedule table. */
   pattern: string | null;
+  /** The Notion page cover's link. It expires within the hour, so only used during the build. */
+  coverUrl: string | null;
+  /** Our own copy of the page cover (upcoming trips only; past trips don't get images). */
+  image: SavedImage | null;
 }
 
 // ---------- API ----------
@@ -180,6 +185,8 @@ function pageToTrip(page: any): FieldTrip | null {
       kind === 'event' ? [] : (p[LEADERS_PROPERTY]?.relation ?? []).map((r: { id: string }) => r.id),
     leaders: [],
     pattern: null,
+    coverUrl: page.cover?.[page.cover.type]?.url ?? null,
+    image: null,
   };
 }
 
@@ -363,11 +370,17 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
     trip.leaders = leaders;
   }
 
+  // Cover images: copied onto our site for upcoming trips only.
+  for (const trip of trips) {
+    if (trip.isPast || !trip.coverUrl) continue;
+    trip.image = await saveImage(trip.coverUrl, { width: 1600, thumb: { width: 240, height: 180 } });
+  }
+
   // A series' repeating pattern, from the schedule table in its page.
   for (const trip of trips) {
     if (trip.kind !== 'series') continue;
     try {
-      const schedules = (await fetchBlocks(trip.id, true)).filter((b) => b.type === 'child_database' && b.schedule);
+      const schedules = (await fetchBlocks(trip.id, bodyOptions(trip))).filter((b) => b.type === 'child_database' && b.schedule);
       trip.pattern = describePattern(schedules.flatMap((b) => b.schedule!.rows));
     } catch (err) {
       console.warn(`[notion] Could not read the schedule of "${trip.name}": ${(err as Error).message}`);
@@ -397,27 +410,42 @@ async function loadFieldTrips(): Promise<FieldTrip[]> {
 export const getUpcomingTrips = async () => (await getFieldTrips()).filter((t) => !t.isPast);
 export const getPastTrips = async () => (await getFieldTrips()).filter((t) => t.isPast);
 
-/**
- * Renders the body of a trip's Notion page to HTML. Inline databases in the page are read (as an
- * outing schedule table) only when `schedules` is true, i.e. for a Series. On any other page
- * they're ignored, so internal tables (planning notes, sign-ups) are never read or published.
- */
-export async function getTripBodyHtml(pageId: string, schedules = false): Promise<string> {
-  return renderBlocks(await fetchBlocks(pageId, schedules));
+interface BodyOptions {
+  /** Read inline databases as an outing schedule table. Series only: on any other page they're
+   *  ignored, so internal tables (planning notes, sign-ups) are never read or published. */
+  schedules?: boolean;
+  /** Copy images onto our site. Upcoming trips only. */
+  images?: boolean;
 }
 
-// Cached, because a series' page body is read twice: once for its pattern (on the lists) and
+const bodyOptions = (trip: FieldTrip): BodyOptions => ({
+  schedules: trip.kind === 'series',
+  images: !trip.isPast,
+});
+
+/** Renders the body of a trip's Notion page to HTML. */
+export async function getTripBody(trip: FieldTrip): Promise<string> {
+  return renderBlocks(await fetchBlocks(trip.id, bodyOptions(trip)));
+}
+
+/** Renders any other Notion page body (e.g. a leader's bio): plain text blocks only. */
+export async function getTripBodyHtml(pageId: string): Promise<string> {
+  return renderBlocks(await fetchBlocks(pageId, {}));
+}
+
+// Cached, because a page body can be read twice: once for a series' pattern (on the lists) and
 // once to render the page.
 const blocksCache = new Map<string, Promise<Block[]>>();
 const warnedDatabases = new Set<string>();
 
-function fetchBlocks(blockId: string, schedules = false): Promise<Block[]> {
-  const key = `${blockId}|${schedules}`;
-  if (!blocksCache.has(key)) blocksCache.set(key, loadBlocks(blockId, schedules));
+function fetchBlocks(blockId: string, options: BodyOptions): Promise<Block[]> {
+  const key = `${blockId}|${!!options.schedules}|${!!options.images}`;
+  if (!blocksCache.has(key)) blocksCache.set(key, loadBlocks(blockId, options));
   return blocksCache.get(key)!;
 }
 
-async function loadBlocks(blockId: string, schedules: boolean): Promise<Block[]> {
+async function loadBlocks(blockId: string, options: BodyOptions): Promise<Block[]> {
+  const { schedules = false, images = false } = options;
   const blocks: Block[] = [];
   let cursor: string | undefined;
   do {
@@ -429,6 +457,18 @@ async function loadBlocks(blockId: string, schedules: boolean): Promise<Block[]>
   } while (cursor);
 
   for (const block of blocks) {
+    if (block.type === 'image') {
+      if (!images) continue;
+      const img = block.image;
+      const url: string | undefined = img?.[img?.type]?.url;
+      if (!url) continue;
+      block.saved = await saveImage(url, { width: 1200, fullWidth: 2000 });
+      // The caption doubles as the alt text, so every image should have one.
+      if (block.saved && !(img.caption ?? []).length) {
+        console.warn(`[notion] An image on page ${blockId} has no caption. Add one in Notion: it's used as the alt text.`);
+      }
+      continue;
+    }
     if (block.type === 'child_database') {
       if (!schedules) continue;
       try {
@@ -449,7 +489,7 @@ async function loadBlocks(blockId: string, schedules: boolean): Promise<Block[]>
     // database, which Notion rejects with a 404.
     if (!block.has_children || !RENDERED_NESTED_TYPES.has(block.type)) continue;
     try {
-      block.children = await fetchBlocks(block.id);
+      block.children = await fetchBlocks(block.id, options);
     } catch (err) {
       console.warn(`[notion] Skipping nested content of block ${block.id}: ${(err as Error).message}`);
     }

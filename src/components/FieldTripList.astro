@@ -14,25 +14,35 @@ const { trips } = Astro.props;
     const open = !trip.isPast && !trip.isFull && trip.status === 'Announced';
     const left = open ? spotsLeft(trip) : null;
     const waiting = !trip.isPast && trip.isFull && trip.waitlist ? trip.waitlist : null;
+    const href = `/field-trips/${trip.slug}/`;
+    const thumb = trip.image?.thumbSrc;
     return (
-      <article class="field-trip">
-        <h3>
-          <a href={`/field-trips/${trip.slug}/`}>{trip.name}</a>
-          <TripBadges trip={trip} />
-        </h3>
-        <p class="trip-meta">
-          {formatTripDate(trip)}
-          {trip.location && <> · {trip.location}</>}
-          {left !== null && <> · <strong>{left} {left === 1 ? 'spot' : 'spots'} left</strong></>}
-          {waiting !== null && <> · <strong>{waiting} on the waitlist</strong></>}
-          {trip.pattern && <><br />{trip.pattern}</>}
-        </p>
-        {!trip.isPast && trip.leaders.length > 0 && (
-          <p class="trip-meta">Led by {formatNames(trip.leaders.map((l) => l.name))}</p>
+      <article class:list={['field-trip', { 'has-thumb': thumb }]}>
+        {thumb && (
+          // Decorative duplicate of the title link, so it's skipped by keyboards and screen readers.
+          <a class="trip-thumb" href={href} tabindex="-1" aria-hidden="true">
+            <img src={thumb} width="240" height="180" alt="" loading="lazy" />
+          </a>
         )}
-        {trip.isPast && trip.checklistUrl && (
-          <p class="trip-meta"><a href={trip.checklistUrl}>eBird checklist</a></p>
-        )}
+        <div class="trip-text">
+          <h3>
+            <a href={href}>{trip.name}</a>
+            <TripBadges trip={trip} />
+          </h3>
+          <p class="trip-meta">
+            {formatTripDate(trip)}
+            {trip.location && <> · {trip.location}</>}
+            {left !== null && <> · <strong>{left} {left === 1 ? 'spot' : 'spots'} left</strong></>}
+            {waiting !== null && <> · <strong>{waiting} on the waitlist</strong></>}
+            {trip.pattern && <><br />{trip.pattern}</>}
+          </p>
+          {!trip.isPast && trip.leaders.length > 0 && (
+            <p class="trip-meta">Led by {formatNames(trip.leaders.map((l) => l.name))}</p>
+          )}
+          {trip.isPast && trip.checklistUrl && (
+            <p class="trip-meta"><a href={trip.checklistUrl}>eBird checklist</a></p>
+          )}
+        </div>
       </article>
     );
   })

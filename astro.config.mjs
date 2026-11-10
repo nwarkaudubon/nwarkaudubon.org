@@ -1,5 +1,5 @@
 import { defineConfig } from 'astro/config';
-import { appendFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // Field trip addresses start with a permanent ID ("t42-..."). The rest of the address follows
@@ -11,6 +11,10 @@ const tripRedirects = {
   hooks: {
     'astro:build:done': ({ dir }) => {
       const out = fileURLToPath(dir);
+
+      // Images copied from Notion during the build (see src/lib/notion-images.ts).
+      if (existsSync('.trip-images')) cpSync('.trip-images', `${out}trip-images`, { recursive: true });
+
       const generated = `${out}trip-redirects.txt`;
       if (!existsSync(generated)) return;
       const lines = readFileSync(generated, 'utf8');

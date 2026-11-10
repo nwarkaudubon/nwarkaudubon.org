@@ -5,7 +5,7 @@ import StandardInfo from '../../components/StandardInfo.astro';
 import {
   getFieldTrips,
   getLeaderBioHtml,
-  getTripBodyHtml,
+  getTripBody,
   formatNames,
   formatTripDate,
   spotsLeft,
@@ -18,7 +18,7 @@ export async function getStaticPaths() {
   const paths = [];
   // Sequential on purpose: Notion limits requests to about 3 per second.
   for (const trip of trips) {
-    const bodyHtml = await getTripBodyHtml(trip.id, trip.kind === 'series');
+    const bodyHtml = await getTripBody(trip);
     const leaderBios = [];
     for (const leader of trip.leaders) {
       leaderBios.push({ ...leader, html: await getLeaderBioHtml(leader.id) });
@@ -52,7 +52,7 @@ const mailto = (prefix: string) =>
   `mailto:trips@nwarkaudubon.org?subject=${encodeURIComponent(`${prefix}: ${trip.name}`)}&body=${rsvpBody}`;
 ---
 
-<BaseLayout title={trip.name}>
+<BaseLayout title={trip.name} image={trip.image?.src} imageAlt="">
   <p><a href="/field-trips/">&larr; All field trips &amp; events</a></p>
 
   <h1>

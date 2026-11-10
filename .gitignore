@@ -7,3 +7,5 @@ dist/
 .DS_Store
 Thumbs.db
 .netlify/
+.trip-images/
+public/trip-images/
