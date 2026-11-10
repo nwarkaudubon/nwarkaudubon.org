@@ -1,6 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
   const topics = await getCollection('conservation');
@@ -20,7 +20,7 @@ const { Content } = await render(topic);
   imageAlt={topic.data.imageAlt}
   imageCredit={topic.data.imageCredit}
 >
-  <p><a href="/conservation/">&larr; Conservation</a></p>
+  <p><a href="/resources/conservation/">&larr; Conservation</a></p>
   <h1>{topic.data.title}</h1>
   <div class="prose">
     <Content />

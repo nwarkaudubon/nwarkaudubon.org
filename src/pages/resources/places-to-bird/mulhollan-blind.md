@@ -1,5 +1,5 @@
 ---
-layout: ../../layouts/MarkdownLayout.astro
+layout: ../../../layouts/MarkdownLayout.astro
 title: Mulhollan Waterfowl Observation Blind
 description: The Paige and Mary Bess Mulhollan Waterfowl Observation Blind at Lake Fayetteville.
 ---

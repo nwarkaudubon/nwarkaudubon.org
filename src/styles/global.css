@@ -390,6 +390,11 @@ address {
   margin-top: 1.5rem;
 }
 
+/* "See all..." link after a list: space it from the last item. */
+.more-link {
+  margin-top: 2rem;
+}
+
 /* Small 4:3 thumbnail beside upcoming trips that have a cover image. */
 .field-trip.has-thumb {
   display: flex;

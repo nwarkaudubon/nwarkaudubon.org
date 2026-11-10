@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
 
 const topics = (await getCollection('conservation')).sort(
   (a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title),
@@ -11,6 +11,7 @@ const topics = (await getCollection('conservation')).sort(
   title="Conservation"
   description="Information on how to help birds and the places they live in Northwest Arkansas."
 >
+  <p><a href="/resources/">&larr; Resources</a></p>
   <h1>Conservation</h1>
   <p>
     Information on how we can all help birds and the habitat they depend on. Feel free to share
@@ -24,7 +25,7 @@ const topics = (await getCollection('conservation')).sort(
           {topic.data.externalUrl ? (
             <a href={topic.data.externalUrl}>{topic.data.title}</a>
           ) : (
-            <a href={`/conservation/${topic.id}/`}>{topic.data.title}</a>
+            <a href={`/resources/conservation/${topic.id}/`}>{topic.data.title}</a>
           )}
           <br />
           <span class="trip-meta">{topic.data.description}</span>

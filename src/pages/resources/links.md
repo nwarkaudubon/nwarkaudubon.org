@@ -29,7 +29,7 @@ description: Birding links, related organizations and other resources.
 
 ## Monarch butterflies
 
-See our [Monarch Butterflies](/conservation/monarch-butterflies/) page for resources on conserving and encouraging monarchs.
+See our [Monarch Butterflies](/resources/conservation/monarch-butterflies/) page for resources on conserving and encouraging monarchs.
 
 ## Important Bird Areas
 

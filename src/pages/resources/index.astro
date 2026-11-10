@@ -1,48 +1,84 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const resources = [
+// To add a page: put it under src/pages/resources/ (or a conservation topic under
+// src/content/conservation/), then list it here in whichever section fits best.
+const sections = [
   {
-    href: '/resources/learn-about-birds/',
-    title: 'Learn About Birds',
-    description: 'Ways to get started learning about the birds of Northwest Arkansas.',
+    title: 'Places to Bird',
+    description: 'Site guides, birding hotspots and the Mulhollan Waterfowl Observation Blind.',
+    items: [
+      {
+        href: '/resources/places-to-bird/',
+        title: 'Places to Bird in Northwest Arkansas',
+        description: 'Site guides written by local birders, and where to find birding hotspots.',
+      },
+      {
+        href: '/resources/places-to-bird/mulhollan-blind/',
+        title: 'Mulhollan Waterfowl Observation Blind',
+        description: 'An NWAAS project at Lake Fayetteville, open to the public.',
+      },
+    ],
   },
   {
-    href: '/resources/books/',
-    title: 'Books for Birders',
-    description: 'Free books about local birds by Joe Neal and David Chapman.',
+    title: 'Conservation',
+    description: 'How we can all help birds and the habitat they depend on.',
+    items: [
+      {
+        href: '/resources/conservation/',
+        title: 'Conservation topics',
+        description: 'Window collisions, cats and birds, native plants, monarchs and more.',
+      },
+    ],
   },
   {
-    href: '/resources/videos/',
-    title: 'Videos',
-    description: 'Bird programs recorded by NWAAS members.',
-  },
-  {
-    href: '/resources/links/',
-    title: 'Links',
-    description: 'Birding links, related organizations and other resources.',
+    title: 'Learn & Explore',
+    description: 'Ways to learn more about birds and birding in Northwest Arkansas.',
+    items: [
+      {
+        href: '/resources/learn-about-birds/',
+        title: 'Learn About Birds',
+        description: 'Ways to get started learning about the birds of Northwest Arkansas.',
+      },
+      {
+        href: '/resources/books/',
+        title: 'Books for Birders',
+        description: 'Free books about local birds by Joe Neal and David Chapman.',
+      },
+      {
+        href: '/resources/videos/',
+        title: 'Videos',
+        description: 'Bird programs recorded by NWAAS members.',
+      },
+      {
+        href: '/resources/links/',
+        title: 'Links',
+        description: 'Birding links, related organizations and other resources.',
+      },
+    ],
   },
 ];
 ---
 
 <BaseLayout title="Resources" description="Resources for learning about and enjoying birds in Northwest Arkansas.">
   <h1>Resources</h1>
-  <p>Ways to learn more about birds and birding in Northwest Arkansas.</p>
+  <p>Places to go, ways to help birds, and ways to learn more about birds and birding in Northwest Arkansas.</p>
 
-  <ul class="topic-list">
-    {
-      resources.map((r) => (
-        <li>
-          <a href={r.href}>{r.title}</a>
-          <br />
-          <span class="trip-meta">{r.description}</span>
-        </li>
-      ))
-    }
-  </ul>
-
-  <p>
-    Looking for places to go? See <a href="/places-to-bird/">Places to Bird</a>. For ways to help
-    birds at home, see <a href="/conservation/">Conservation</a>.
-  </p>
+  {
+    sections.map((s) => (
+      <section>
+        <h2>{s.title}</h2>
+        <p>{s.description}</p>
+        <ul class="topic-list">
+          {s.items.map((r) => (
+            <li>
+              <a href={r.href}>{r.title}</a>
+              <br />
+              <span class="trip-meta">{r.description}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
 </BaseLayout>

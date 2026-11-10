@@ -1,6 +1,6 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { places } from '../../data/places';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { places } from '../../../data/places';
 
 const sorted = [...places].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -25,6 +25,7 @@ const guides = [
   title="Places to Bird"
   description="Site guides and birding hotspots in Northwest Arkansas."
 >
+  <p><a href="/resources/">&larr; Resources</a></p>
   <h1>Places to Bird in Northwest Arkansas</h1>
 
   <div class="callout">
@@ -35,7 +36,7 @@ const guides = [
   </div>
 
   <p>
-    Visit the <a href="/places-to-bird/mulhollan-blind/">Mulhollan Waterfowl Observation Blind</a>
+    Visit the <a href="/resources/places-to-bird/mulhollan-blind/">Mulhollan Waterfowl Observation Blind</a>
     at Lake Fayetteville, an NWAAS project open to the public.
   </p>
 
