@@ -19,6 +19,7 @@ export const places: Place[] = [
   { name: "Devil's Den", file: "devil-s-den-state-park-version-of-march-2017.pdf" },
   { name: "Devil's Eyebrow Natural Area", file: "devil-s-eyebrow-natural-area-dena-february-15-2018.pdf" },
   { name: "Eagle Watch Nature Trail", file: "birding-eagle-watch-nature-trail-revised-august-18-2021.pdf" },
+  { name: "Flint Creek Birding Trail", file: "flint-creek-birding-trail-september-9-2019.pdf" },
   { name: "Frog Bayou", file: "birding-frog-bayou-wma-vicinity-in-the-arkansas-valley-2017.pdf" },
   { name: "Gentry and Round Prairie including Safari and Floyd Moore Road", file: "gentry-and-round-prairie-including-safari-and-floyd-moore-road.pdf" },
   { name: "Gentry Prairie", file: "gentry-prairie-edited-version-of-july-16-2013.pdf" },
@@ -26,6 +27,7 @@ export const places: Place[] = [
   { name: "Hobbs State Park Conservation Area", file: "hobbs-state-park-conservation-area-june-2019.pdf" },
   { name: "Kessler Mountain Birding", file: "kessler-mountain-forest-and-regional-park-june-4-2019.pdf" },
   { name: "Kibler Bottoms Loop", file: "kibler-bottoms-loop-2020.pdf" },
+  { name: "Lake Atalanta, Rogers", file: "birding-lake-atalanta.pdf" },
   { name: "Lake Elmdale", file: "lake-elmdale.pdf" },
   { name: "Lake Fayetteville Park", file: "lake-fayetteville-guide-december-2014-version.pdf" },
   { name: "Lake Sequoyah", file: "birding-lake-sequoyah-november-2011.pdf" },
@@ -46,5 +48,6 @@ export const places: Place[] = [
   { name: "Wastewater Treatment Plant, Paul R. Noland", file: "paul-r-noland-wastewater-treatment-facility-feb-2013.pdf" },
   { name: "Wedington Small Game Area", file: "wedington-small-game-area-for-nwaas-web-page-130204.pdf" },
   { name: "Whitney Mountain", file: "whitney-mountain-may-2013-pdf.pdf" },
+  { name: "Wilson Springs Preserve", file: "wilson-springs-preserve-september-9-2019.pdf" },
   { name: "Woolsey Wet Prairie", file: "woolsey-wet-prairie-wildlife-sanctuary-july-24-2018.pdf" },
 ];
