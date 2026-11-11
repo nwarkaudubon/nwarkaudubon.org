@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found" noindex banner={false}>
+  <h1>Page not found</h1>
+  <p>
+    We couldn't find that page. It may have moved when we rebuilt the website, or the address
+    may have a typo.
+  </p>
+  <ul class="topic-list">
+    <li><a href="/">Home</a></li>
+    <li><a href="/field-trips/">Field trips and events</a></li>
+    <li><a href="/resources/">Resources</a>: places to bird, conservation, and ways to learn</li>
+    <li><a href="/archive/">Archive</a>: older programs, newsletters and photos</li>
+  </ul>
+  <p>
+    Still stuck? Email <a href="mailto:info@nwarkaudubon.org">info@nwarkaudubon.org</a>.
+  </p>
+</BaseLayout>
