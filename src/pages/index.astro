@@ -1,9 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FieldTripList from '../components/FieldTripList.astro';
-import { getUpcomingTrips } from '../lib/notion';
+import { getUpcomingTrips, getPastTrips } from '../lib/notion';
 
 const upcoming = await getUpcomingTrips();
+// The three most recent past trips (newest first), so the home page always shows recent activity.
+const recent = (await getPastTrips()).slice(0, 3);
 ---
 
 <BaseLayout>
@@ -40,6 +42,16 @@ const upcoming = await getUpcomingTrips();
         <p>No field trips are announced right now. Check back soon, or follow us on Facebook.</p>
       )
     }
-    <p class="more-link"><a href="/field-trips/">See all field trips and events, including past ones &rarr;</a></p>
   </section>
+
+  {
+    recent.length > 0 && (
+      <section>
+        <h2>Recent Field Trips &amp; Events</h2>
+        <FieldTripList trips={recent} />
+      </section>
+    )
+  }
+
+  <p class="more-link"><a href="/field-trips/">See all field trips and events, including past ones &rarr;</a></p>
 </BaseLayout>
